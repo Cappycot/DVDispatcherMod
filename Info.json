@@ -2,6 +2,6 @@
     "Id": "DVDispatcherMod",
     "DisplayName": "Derail Valley Dispatcher",
     "Author": "Cappycot",
-    "Version": "0.1.0",
+    "Version": "0.1.1",
     "EntryMethod": "DVDispatcherMod.Main.Load"
 }
