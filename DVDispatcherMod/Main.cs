@@ -130,6 +130,7 @@ namespace DVDispatcherMod
                     GameObject g = GameObject.Find("[NonVRFloatie]");
                     if (g == null)
                         return;
+                    g = GameObject.Instantiate(g); // The tutorial sequence destroys non VR floaties, so make our own.
                     Image i = g.GetComponentInChildren<Image>(true);
                     if (i == null)
                         return;
