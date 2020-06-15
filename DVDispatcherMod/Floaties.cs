@@ -160,7 +160,7 @@ namespace DVDispatcherMod
                 {
                     parent = (PlayerManager.Car ? PlayerManager.Car.interior : (SingletonBehaviour<WorldMover>.Exists ? SingletonBehaviour<WorldMover>.Instance.originShiftParent : null));
                 }
-                floatieVR = (UnityEngine.Object.Instantiate(Resources.Load("tutorial_floatie"), position, Quaternion.identity, parent) as GameObject);
+                floatieVR = (Object.Instantiate(Resources.Load("tutorial_floatie"), position, Quaternion.identity, parent) as GameObject);
                 floatieVR.GetComponent<TutorialFloatie>().UpdateTextExternally(text);
             }
         }
@@ -172,11 +172,13 @@ namespace DVDispatcherMod
                 floatieVR.GetComponent<Floatie>().attentionPoint = attentionTransform;
                 // TODO: Fiddle with LineRenderer make sure it's working then delete this section.
                 LineRenderer lr = floatieVR.GetComponent<LineRenderer>();
-                if (lr == null)
+                // LineRenderer doesn't exist until VR floatie is fully expanded for some reason.
+                /*if (lr == null)
                 {
                     Main.mod.Logger.Log("The VR LineRenderer is null for some reason.");
                 }
-                else
+                else*/
+                if (lr != null)
                 {
                     lr.startWidth = START_WIDTH;
                     lr.endWidth = END_WIDTH;

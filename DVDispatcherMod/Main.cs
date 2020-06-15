@@ -59,12 +59,14 @@ namespace DVDispatcherMod
                 // eyesTransform = PlayerManager.PlayerCamera.transform;
                 if (VRManager.IsVREnabled())
                 {
-                    VRTK_InteractGrab grab = VRTK_DeviceFinder.GetControllerLeftHand(true).transform.GetComponentInChildren<VRTK_InteractGrab>();
-                    grab.ControllerGrabInteractableObject += OnItemGrabbedLeftVR;
-                    grab.ControllerStartUngrabInteractableObject += OnItemUngrabbedLeftVR;
-                    grab = VRTK_DeviceFinder.GetControllerRightHand(true).transform.GetComponentInChildren<VRTK_InteractGrab>();
-                    grab.ControllerGrabInteractableObject += OnItemGrabbedRightVR;
-                    grab.ControllerStartUngrabInteractableObject += OnItemUngrabbedRightVR;
+                    VRTK_InteractGrab lGrab = VRTK_DeviceFinder.GetControllerLeftHand(true)?.transform.GetComponentInChildren<VRTK_InteractGrab>();
+                    VRTK_InteractGrab rGrab = VRTK_DeviceFinder.GetControllerRightHand(true)?.transform.GetComponentInChildren<VRTK_InteractGrab>();
+                    if (lGrab == null || rGrab == null)
+                        return;
+                    lGrab.ControllerGrabInteractableObject += OnItemGrabbedLeftVR;
+                    lGrab.ControllerStartUngrabInteractableObject += OnItemUngrabbedLeftVR;
+                    rGrab.ControllerGrabInteractableObject += OnItemGrabbedRightVR;
+                    rGrab.ControllerStartUngrabInteractableObject += OnItemUngrabbedRightVR;
                 }
                 else
                 {

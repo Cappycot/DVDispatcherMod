@@ -1,9 +1,7 @@
 ﻿using DV.Logic.Job;
 using DV.ServicePenalty;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using UnityEngine;
 
@@ -19,9 +17,11 @@ namespace DVDispatcherMod
         private List<Car> jobCars;
         private Dictionary<Car, bool> jobCarsUsed;
         private List<Trainset> jobConsists; // Important consists to point at.
-        private Trainset jobConsistUsed; // Trainset containing player's last loco.
+        // private Trainset jobConsistUsed; // Trainset containing player's last loco.
+        private int currentTasks;
         private List<TrackID> currentTracks;
         // private Dictionary<TrackID, bool> destinationTracks; // Check if dropoffs are occupied.
+        // private List<Trainset> destinationConsists; // Consists blocking the destination tracks.
 
         public JobDispatch(Job job)
         {
@@ -29,24 +29,8 @@ namespace DVDispatcherMod
             jobCars = new List<Car>();
             jobCarsUsed = new Dictionary<Car, bool>();
             jobConsists = new List<Trainset>();
+            currentTasks = 0;
             currentTracks = new List<TrackID>();
-            // destinationTracks = new Dictionary<TrackID, bool>();
-            /*switch (job.jobType)
-            {
-                // if else if else if else if else
-                case JobType.EmptyHaul:
-                    jobCars = JobDataExtractor.ExtractEmptyHaulJobData(job).transportingCars;
-                    break;
-                case JobType.ShuntingLoad:
-                    jobCars = JobDataExtractor.ExtractShuntingLoadJobData(job).allCarsToLoad;
-                    break;
-                case JobType.ShuntingUnload:
-                    jobCars = JobDataExtractor.ExtractShuntingUnloadJobData(job).allCarsToUnload;
-                    break;
-                case JobType.Transport:
-                    jobCars = JobDataExtractor.ExtractTransportJobData(job).transportingCars;
-                    break;
-            }*/
             UpdateJobCars();
             UpdateJobPrivilege();
         }
@@ -56,9 +40,10 @@ namespace DVDispatcherMod
             jobCars.Clear();
             jobCarsUsed.Clear();
             jobConsists.Clear();
-            jobConsistUsed = null;
+            // jobConsistUsed = null;
             currentTracks.Clear();
             List<Task> tasks = GetFirstUnfinishedTasks();
+            currentTasks = tasks.Count;
             foreach (Task t in tasks)
                 jobCars.AddRange(t.GetTaskData().cars);
             foreach (Car c in jobCars)
@@ -87,6 +72,11 @@ namespace DVDispatcherMod
                     currentTracks.Add(trackID);
                 }
             }
+        }
+
+        public void UpdateJobTracks()
+        {
+
         }
 
         // TODO: Find different place to define and call?
@@ -195,6 +185,7 @@ namespace DVDispatcherMod
                     else
                         return "The job cars could not be found... wtf?";
                 case JobState.InProgress:
+                    // Pretty much the same thing as JobState.Available except no job eligibility checking.
                     if (jobConsists.Count > 1)
                     {
                         index %= jobConsists.Count;
@@ -225,8 +216,10 @@ namespace DVDispatcherMod
                         bool locoHooked = PlayerManager.LastLoco?.trainset == jobConsists[0];
                         return string.Format("The cars for job {0} are in the same consist on track <color=#F29839>{1}</color>{2}.", job.ID, t == null ? "(Unknown)" : t.TrackPartOnly, locoHooked ? " and have a locomotive attached" : "");
                     }
-                    else
+                    else if (currentTasks > 0) // No cars in sight but tasks are unfinished.
                         return "The job cars could not be found... wtf?";
+                    else // No cars in sight because no tasks found.
+                        return "The job is probably complete. Try turning it in.";
                 case JobState.Completed:
                     return "This job is completed.";
                 case JobState.Abandoned:
@@ -251,7 +244,7 @@ namespace DVDispatcherMod
                 return null;
             index %= jobConsists.Count;
             Trainset t = jobConsists[index];
-            if (t == jobConsistUsed)
+            if (t == PlayerManager.LastLoco?.trainset)
                 return PlayerManager.LastLoco?.transform;
             // Get car in middle of set.
             // TODO: Raise pointer to middle of car height.
