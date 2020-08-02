@@ -128,7 +128,7 @@ namespace DVDispatcherMod
         {
             if (iis == null)
                 return;
-            mod.Logger.Log(string.Format("Picked up a(n) {0} in the right hand.", iis.itemName));
+            // mod.Logger.Log(string.Format("Picked up a(n) {0} in the right hand.", iis.itemName));
             JobOverview jo = iis.GetComponent<JobOverview>();
             if (jo != null)
             {
@@ -159,37 +159,37 @@ namespace DVDispatcherMod
         // Grab Listeners
         static void OnItemAddedToInventory(GameObject o, int _)
         {
-            OnItemUngrabbedRight(o.GetComponent<InventoryItemSpec>());
+            OnItemUngrabbedRight(o?.GetComponent<InventoryItemSpec>());
         }
 
         static void OnItemGrabbedRightNonVR(GameObject o)
         {
-            OnItemGrabbedRight(o.GetComponent<InventoryItemSpec>());
+            OnItemGrabbedRight(o?.GetComponent<InventoryItemSpec>());
         }
 
         static void OnItemUngrabbedRightNonVR(GameObject o)
         {
-            OnItemUngrabbedRight(o.GetComponent<InventoryItemSpec>());
+            OnItemUngrabbedRight(o?.GetComponent<InventoryItemSpec>());
         }
 
         static void OnItemGrabbedLeftVR(object sender, ObjectInteractEventArgs e)
         {
-            OnItemGrabbedLeft(e.target.GetComponent<InventoryItemSpec>());
+            OnItemGrabbedLeft(e.target?.GetComponent<InventoryItemSpec>());
         }
 
         static void OnItemGrabbedRightVR(object sender, ObjectInteractEventArgs e)
         {
-            OnItemGrabbedRight(e.target.GetComponent<InventoryItemSpec>());
+            OnItemGrabbedRight(e.target?.GetComponent<InventoryItemSpec>());
         }
 
         static void OnItemUngrabbedLeftVR(object sender, ObjectInteractEventArgs e)
         {
-            OnItemUngrabbedLeft(e.target.GetComponent<InventoryItemSpec>());
+            OnItemUngrabbedLeft(e.target?.GetComponent<InventoryItemSpec>());
         }
 
         static void OnItemUngrabbedRightVR(object sender, ObjectInteractEventArgs e)
         {
-            OnItemUngrabbedRight(e.target.GetComponent<InventoryItemSpec>());
+            OnItemUngrabbedRight(e.target?.GetComponent<InventoryItemSpec>());
         }
     }
 }
