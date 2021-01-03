@@ -49,8 +49,11 @@ namespace DVDispatcherMod
                 ShowFloatie = ShowFloatVR;
                 UpdateAttentionTransform = UpdateAttentionTransformVR;
             }
-            else if (LoadingScreenManager.IsLoading || !WorldStreamingInit.IsLoaded || !InventoryStartingItems.itemsLoaded)
+            else if( LoadingScreenManager.IsLoading || !WorldStreamingInit.IsLoaded || 
+                     !SingletonBehaviour<InventoryStartingItems>.Instance.itemsLoaded )
+            {
                 return false;
+            }
             else
             {
                 GameObject g = GameObject.Find("[NonVRFloatie]");

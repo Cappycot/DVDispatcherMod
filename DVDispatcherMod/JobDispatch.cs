@@ -53,9 +53,8 @@ namespace DVDispatcherMod
                 if (!jobCarsUsed[car])
                 {
                     TrackID trackID = car.CurrentTrack?.ID;
-                    TrainCar trainCar;
-                    if (!TrainCar.logicCarToTrainCar.TryGetValue(car, out trainCar))
-                        continue;
+                    if( !SingletonBehaviour<IdGenerator>.Instance.logicCarToTrainCar.TryGetValue(car, out TrainCar trainCar) ) continue;
+
                     Trainset trainset = trainCar.trainset;
                     foreach (TrainCar tc in trainset.cars)
                     {
@@ -93,7 +92,7 @@ namespace DVDispatcherMod
                 jobNotAllowed = true;
                 jobNotAllowedText = "You don't have the required license(s) for this job.";
             }
-            else if (!CareerManagerDebtController.IsPlayerAllowedToTakeJob())
+            else if (!SingletonBehaviour<CareerManagerDebtController>.Instance.IsPlayerAllowedToTakeJob())
             {
                 jobNotAllowed = true;
                 jobNotAllowedText = "You still have fees to pay off in the Career Manager.";
