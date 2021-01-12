@@ -50,6 +50,7 @@ namespace DVDispatcherMod
                 UpdateAttentionTransform = UpdateAttentionTransformVR;
             }
             else if( LoadingScreenManager.IsLoading || !WorldStreamingInit.IsLoaded || 
+                     SingletonBehaviour<InventoryStartingItems>.Instance == null ||
                      !SingletonBehaviour<InventoryStartingItems>.Instance.itemsLoaded )
             {
                 return false;
