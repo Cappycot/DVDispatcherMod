@@ -2,7 +2,7 @@
     "Id": "DVDispatcherMod",
     "DisplayName": "Derail Valley Dispatcher",
     "Author": "Cappycot",
-    "Version": "0.2.2",
+    "Version": "0.2.3",
     "EntryMethod": "DVDispatcherMod.Main.Load",
     "HomePage": "https://www.nexusmods.com/derailvalley/mods/92",
     "Repository": "https://raw.githubusercontent.com/Cappycot/DVDispatcherMod/master/Repository.json"
