@@ -34,6 +34,7 @@ namespace DVDispatcherMod
             mod.OnUpdate = OnUpdate;
             floatLoaded = false;
             showFloat = true;
+            Floaties.Initialize();
             return true;
         }
 
@@ -58,15 +59,13 @@ namespace DVDispatcherMod
         private static bool showing = false;
         private static int counter = 0;
         private static float timer = 0;
-        private static JobDispatch holdingLeft;
+        // private static IDispatch holdingLeft;
         private static JobDispatch holdingRight;
 
         static void OnUpdate(UnityModManager.ModEntry mod, float delta)
         {
             timer += delta;
-            if (!floatLoaded)
-                floatLoaded = Floaties.Initialize();
-            else if (!listenersSetup)
+            if (!listenersSetup)
             {
                 // eyesTransform = PlayerManager.PlayerCamera.transform;
                 if (VRManager.IsVREnabled())
@@ -82,13 +81,24 @@ namespace DVDispatcherMod
                 }
                 else
                 {
-                    Grabber grab = PlayerManager.PlayerTransform.GetComponentInChildren<Grabber>();
+                    if (LoadingScreenManager.IsLoading || !WorldStreamingInit.IsLoaded ||
+                        !SingletonBehaviour<InventoryStartingItems>.Exists ||
+                        !SingletonBehaviour<InventoryStartingItems>.Instance.itemsLoaded)
+                        return;
+                    else if (!floatLoaded)
+                    {
+                        floatLoaded = Floaties.InitFloatieNonVR();
+                        return;
+                    }
+                    Grabber grab = PlayerManager.PlayerTransform?.GetComponentInChildren<Grabber>();
+                    if (grab == null || SingletonBehaviour<Inventory>.Instance == null)
+                        return;
                     grab.Grabbed += OnItemGrabbedRightNonVR;
                     grab.Released += OnItemUngrabbedRightNonVR;
                     SingletonBehaviour<Inventory>.Instance.ItemAddedToInventory += OnItemAddedToInventory;
                 }
 
-                mod.Logger.Log(string.Format("Listeners have been set up, total time elapsed: {0:0.00} seconds.", timer));
+                mod.Logger.Log(string.Format("Floaties have been set up, total time elapsed: {0:0.00} seconds.", timer));
                 listenersSetup = true;
             }
             else
