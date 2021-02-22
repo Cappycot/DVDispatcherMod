@@ -77,6 +77,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BookletReader.cs" />
+    <Compile Include="ConsistInfo.cs" />
+    <Compile Include="CoupleDispatch.cs" />
+    <Compile Include="Interaction.cs" />
+    <Compile Include="Dispatch.cs" />
     <Compile Include="Floaties.cs" />
     <Compile Include="JobDispatch.cs" />
     <Compile Include="Utils.cs" />

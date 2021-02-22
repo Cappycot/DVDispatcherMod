@@ -1,23 +1,35 @@
-﻿using UnityEngine;
+﻿using Harmony12;
+using System.Collections.Generic;
+using System.Reflection;
+using UnityEngine;
 using UnityModManagerNet;
 using VRTK;
 
 /*
  * Visual Studio puts braces on a different line? How do y'all live like this?
+ * 
+ * Notes:
+ * - Lists of cars fully vs partially on a logic track are mutually exclusive.
  */
 namespace DVDispatcherMod
 {
     static class Main
     {
-        public static UnityModManager.ModEntry mod;
+        // Time between forced dispatcher updates.
         public const float POINTER_INTERVAL = 1;
 
+        // Store job booklet page-specific helpful information.
+        public static Dictionary<string, IDispatch[]> jobDispatches = new Dictionary<string, IDispatch[]>();
+
+        public static UnityModManager.ModEntry mod;
         private static bool floatLoaded;
         private static bool showFloat;
 
         static bool Load(UnityModManager.ModEntry modEntry)
         {
             mod = modEntry;
+            HarmonyInstance harmony = HarmonyInstance.Create(modEntry.Info.Id);
+            harmony.PatchAll(Assembly.GetExecutingAssembly());
             mod.OnToggle = OnToggle;
             mod.OnUpdate = OnUpdate;
             floatLoaded = false;
@@ -46,7 +58,7 @@ namespace DVDispatcherMod
         private static bool showing = false;
         private static int counter = 0;
         private static float timer = 0;
-        // private static Job holdingLeft;
+        private static JobDispatch holdingLeft;
         private static JobDispatch holdingRight;
 
         static void OnUpdate(UnityModManager.ModEntry mod, float delta)

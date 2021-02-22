@@ -1,0 +1,6 @@
+﻿namespace DVDispatcherMod
+{
+    class Interaction
+    {
+    }
+}
