@@ -81,9 +81,7 @@ namespace DVDispatcherMod
                 }
                 else
                 {
-                    if (LoadingScreenManager.IsLoading || !WorldStreamingInit.IsLoaded ||
-                        !SingletonBehaviour<InventoryStartingItems>.Exists ||
-                        !SingletonBehaviour<InventoryStartingItems>.Instance.itemsLoaded)
+                    if (LoadingScreenManager.IsLoading || !WorldStreamingInit.IsLoaded || !SingletonBehaviour<Inventory>.Instance)
                         return;
                     else if (!floatLoaded)
                     {
