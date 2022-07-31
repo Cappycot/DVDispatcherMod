@@ -36,24 +36,29 @@ namespace DVDispatcherMod {
             _currentTracks.Clear();
             var tasks = GetFirstUnfinishedTasks();
             _currentTasks = tasks.Count;
-            foreach (var t in tasks)
+            foreach (var t in tasks) {
                 _jobCars.AddRange(t.GetTaskData().cars);
-            foreach (var c in _jobCars)
+            }
+            foreach (var c in _jobCars) {
                 _jobCarsUsed[c] = false;
+            }
             foreach (var car in _jobCars) {
                 if (!_jobCarsUsed[car]) {
                     var trackID = car.CurrentTrack?.ID;
-                    if (!SingletonBehaviour<IdGenerator>.Instance.logicCarToTrainCar.TryGetValue(car, out var trainCar))
+                    if (!SingletonBehaviour<IdGenerator>.Instance.logicCarToTrainCar.TryGetValue(car, out var trainCar)) {
                         continue;
+                    }
 
                     var trainset = trainCar.trainset;
                     foreach (var tc in trainset.cars) {
                         var c = tc.logicCar;
                         if (c != null) {
-                            if (_jobCarsUsed.ContainsKey(c))
+                            if (_jobCarsUsed.ContainsKey(c)) {
                                 _jobCarsUsed[c] = true;
-                            if (trackID == null)
+                            }
+                            if (trackID == null) {
                                 trackID = c.CurrentTrack?.ID;
+                            }
                         }
                     }
                     _jobConsists.Add(trainset);
@@ -92,8 +97,9 @@ namespace DVDispatcherMod {
                 var tasks = startingTask.GetTaskData().nestedTasks;
                 switch (startingTask.InstanceTaskType) {
                     case TaskType.Parallel:
-                        foreach (var t in tasks)
+                        foreach (var t in tasks) {
                             toReturn.AddRange(GetFirstUnfinishedTasks(t));
+                        }
                         break;
                     case TaskType.Sequential:
                         foreach (var t in tasks) {
@@ -119,16 +125,18 @@ namespace DVDispatcherMod {
         public string GetFloatieText(int index) {
             switch (Job.State) {
                 case JobState.Available:
-                    if (_jobNotAllowed)
+                    if (_jobNotAllowed) {
                         return _jobNotAllowedText;
-                    else if (_jobConsists.Count > 1) {
+                    } else if (_jobConsists.Count > 1) {
                         index %= _jobConsists.Count;
                         var sb = new StringBuilder(string.Format("The cars for job {0} are currently in {1} different consists on tracks", Job.ID, _jobConsists.Count));
                         for (var i = 0; i < _currentTracks.Count; i++) {
-                            if (i > 0 && _currentTracks.Count > 2)
+                            if (i > 0 && _currentTracks.Count > 2) {
                                 sb.Append(',');
-                            if (i == _currentTracks.Count - 1)
+                            }
+                            if (i == _currentTracks.Count - 1) {
                                 sb.Append(" and");
+                            }
                             sb.Append(' ');
                             var t = _currentTracks[i];
                             if (i == index) {
@@ -143,18 +151,21 @@ namespace DVDispatcherMod {
                         var t = _currentTracks[0];
                         var locoHooked = PlayerManager.LastLoco?.trainset == _jobConsists[0];
                         return string.Format("The cars for job {0} are in the same consist on track <color=#F29839>{1}</color>{2}.", Job.ID, t == null ? "(Unknown)" : t.TrackPartOnly, locoHooked ? " and have a locomotive attached" : "");
-                    } else
+                    } else {
                         return "The job cars could not be found... wtf?";
+                    }
                 case JobState.InProgress:
                     // Pretty much the same thing as JobState.Available except no job eligibility checking.
                     if (_jobConsists.Count > 1) {
                         index %= _jobConsists.Count;
                         var sb = new StringBuilder(string.Format("The cars for job {0} are currently in {1} different consists on tracks", Job.ID, _jobConsists.Count));
                         for (var i = 0; i < _currentTracks.Count; i++) {
-                            if (i > 0 && _currentTracks.Count > 2)
+                            if (i > 0 && _currentTracks.Count > 2) {
                                 sb.Append(',');
-                            if (i == _currentTracks.Count - 1)
+                            }
+                            if (i == _currentTracks.Count - 1) {
                                 sb.Append(" and");
+                            }
                             sb.Append(' ');
                             var t = _currentTracks[i];
                             if (i == index) {
@@ -170,9 +181,12 @@ namespace DVDispatcherMod {
                         var locoHooked = PlayerManager.LastLoco?.trainset == _jobConsists[0];
                         return string.Format("The cars for job {0} are in the same consist on track <color=#F29839>{1}</color>{2}.", Job.ID, t == null ? "(Unknown)" : t.TrackPartOnly, locoHooked ? " and have a locomotive attached" : "");
                     } else if (_currentTasks > 0) // No cars in sight but tasks are unfinished.
+                    {
                         return "The job cars could not be found... wtf?";
-                    else // No cars in sight because no tasks found.
+                    } else // No cars in sight because no tasks found.
+                    {
                         return "The job is probably complete. Try turning it in.";
+                    }
                 case JobState.Completed:
                     return "This job is completed.";
                 case JobState.Abandoned:
@@ -192,12 +206,15 @@ namespace DVDispatcherMod {
         /// <param name="index"></param>
         /// <returns></returns>
         public Transform GetPointerAt(int index) {
-            if (_jobConsists.Count < 1 || _jobNotAllowed)
+            if (_jobConsists.Count < 1 || _jobNotAllowed) {
                 return null;
+            }
             index %= _jobConsists.Count;
             var t = _jobConsists[index];
-            if (t == PlayerManager.LastLoco?.trainset)
+            if (t == PlayerManager.LastLoco?.trainset) {
                 return PlayerManager.LastLoco?.transform;
+            }
+
             // Get car in middle of set.
             // TODO: Raise pointer to middle of car height.
             return t.cars[t.cars.Count / 2].transform;

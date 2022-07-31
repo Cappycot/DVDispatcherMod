@@ -90,9 +90,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Floaties.cs" />
+    <Compile Include="IDispatcherHintShower.cs" />
     <Compile Include="JobDispatch.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="NonVRDispatcherHintShower.cs" />
+    <Compile Include="PointerTexture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="HarmonyPatches.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
