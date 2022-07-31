@@ -1,0 +1,5 @@
+syntax: glob
+.vs/
+_ReSharper.Caches/
+*/obj/
+*/bin/

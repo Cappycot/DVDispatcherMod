@@ -6,16 +6,14 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VRTK;
 
-namespace DVDispatcherMod
-{
-    public static class Floaties
-    {
+namespace DVDispatcherMod {
+    public static class Floaties {
 
         // NonVR Floating Text
         public static GameObject floatieNonVR;
         private static TutorialLineNonVR floatieNonVRLine;
         private static TextMeshProUGUI floatieNonVRText;
-        private static bool floatieSceneLoaded = false;
+        private static bool floatieSceneLoaded;
 
         // VR Floating Text
         private static GameObject floatieVR;
@@ -35,21 +33,17 @@ namespace DVDispatcherMod
         public delegate void UpdateAttentionTransformDelegate(Transform attentionTransform);
         public static UpdateAttentionTransformDelegate UpdateAttentionTransform;
 
-        public static void Initialize()
-        {
+        public static void Initialize() {
             pointerTexture = new Texture2D(256, 1);
             // Note: ImageConversion.LoadImage automatically invokes Apply.
-            ImageConversion.LoadImage(pointerTexture, File.ReadAllBytes(Main.mod.Path + "tutorial_UI_gradient_opaque.png"));
+            ImageConversion.LoadImage(pointerTexture, File.ReadAllBytes(Main.ModEntry.Path + "tutorial_UI_gradient_opaque.png"));
             // Solely based on command line args, so fine to init ASAP.
-            if (VRManager.IsVREnabled())
-            {
+            if (VRManager.IsVREnabled()) {
                 ChangeFloatieText = ChangeFloatieTextVR;
                 HideFloatie = HideFloatVR;
                 ShowFloatie = ShowFloatVR;
                 UpdateAttentionTransform = UpdateAttentionTransformVR;
-            }
-            else
-            {
+            } else {
                 ChangeFloatieText = ChangeFloatieTextNonVR;
                 HideFloatie = HideFloatNonVR;
                 ShowFloatie = ShowFloatNonVR;
@@ -57,88 +51,76 @@ namespace DVDispatcherMod
             }
         }
 
-        public static bool InitFloatieNonVR()
-        {
-            GameObject g = GameObject.Find("[NonVRFloatie]");
-            if (g == null)
-            {
-                if (!floatieSceneLoaded)
-                {
+        public static bool InitFloatieNonVR() {
+            var g = GameObject.Find("[NonVRFloatie]");
+            if (g == null) {
+                if (!floatieSceneLoaded) {
                     SceneManager.LoadScene("non_vr_ui_floatie", LoadSceneMode.Additive);
                     floatieSceneLoaded = true;
-                    Main.mod.Logger.Log("Called load of non VR float scene.");
-                }
-                else
-                    Main.mod.Logger.Log("Could not find the non VR float.");
+                    Main.ModEntry.Logger.Log("Called load of non VR float scene.");
+                } else
+                    Main.ModEntry.Logger.Log("Could not find the non VR float.");
                 return false;
             }
-            g = GameObject.Instantiate(g); // The tutorial sequence destroys non VR floaties, so make our own.
+            g = Object.Instantiate(g); // The tutorial sequence destroys non VR floaties, so make our own.
 
             floatieNonVR = g.GetComponentInChildren<Image>(true)?.gameObject;
             if (floatieNonVR == null)
                 return false;
-            Main.mod.Logger.Log("Found the non VR float.");
+            Main.ModEntry.Logger.Log("Found the non VR float.");
 
             floatieNonVRText = floatieNonVR.GetComponentInChildren<TextMeshProUGUI>(true);
             if (floatieNonVRText == null)
                 return false;
-            Main.mod.Logger.Log("Found the non VR text.");
+            Main.ModEntry.Logger.Log("Found the non VR text.");
 
             floatieNonVRLine = floatieNonVR.GetComponentInChildren<TutorialLineNonVR>(true);
             if (floatieNonVRLine == null)
                 return false;
-            Main.mod.Logger.Log("Found the non VR line.");
+            Main.ModEntry.Logger.Log("Found the non VR line.");
             return true;
         }
 
         // Non VR floating text.
-        public static void ChangeFloatieTextNonVR(string text)
-        {
+        public static void ChangeFloatieTextNonVR(string text) {
             floatieNonVRText.text = text;
         }
 
-        public static void HideFloatNonVR()
-        {
+        public static void HideFloatNonVR() {
             floatieNonVR.SetActive(false);
             floatieNonVRText.text = string.Empty;
             floatieNonVRLine.attentionTransform = null;
         }
 
-        public static void ShowFloatNonVR(string text)
-        {
+        public static void ShowFloatNonVR(string text) {
             HideFloatNonVR();
             floatieNonVRText.text = text;
             floatieNonVR.SetActive(true);
         }
 
-        public static void UpdateAttentionTransformNonVR(Transform attentionTransform)
-        {
+        public static void UpdateAttentionTransformNonVR(Transform attentionTransform) {
             // if (floatieNonVR.activeInHierarchy)
             floatieNonVRLine.attentionTransform = attentionTransform;
         }
 
         // VR floating text.
-        public static void ChangeFloatieTextVR(string text)
-        {
+        public static void ChangeFloatieTextVR(string text) {
             if (floatieVR != null)
                 floatieVR.GetComponent<TutorialFloatie>().UpdateTextExternally(text);
         }
 
-        public static void HideFloatVR()
-        {
+        public static void HideFloatVR() {
             if (floatieVR != null)
                 Object.Destroy(floatieVR);
         }
 
-        public static void ShowFloatVR(string text)
-        {
+        public static void ShowFloatVR(string text) {
             HideFloatVR();
-            if (!string.IsNullOrEmpty(text))
-            {
-                Transform eyesTransform = PlayerManager.PlayerCamera?.transform;
+            if (!string.IsNullOrEmpty(text)) {
+                var eyesTransform = PlayerManager.PlayerCamera?.transform;
                 if (eyesTransform == null)
                     return;
-                Vector3 position = eyesTransform.position + eyesTransform.forward * 1.5f;
+                var position = eyesTransform.position + eyesTransform.forward * 1.5f;
                 Transform parent;
                 if (VRManager.IsVREnabled())
                     parent = VRTK_DeviceFinder.PlayAreaTransform();
@@ -149,18 +131,15 @@ namespace DVDispatcherMod
             }
         }
 
-        public static void UpdateAttentionTransformVR(Transform attentionTransform)
-        {
+        public static void UpdateAttentionTransformVR(Transform attentionTransform) {
             if (floatieVR != null)
                 floatieVR.GetComponent<Floatie>().attentionPoint = attentionTransform;
         }
     }
 
     [HarmonyPatch(typeof(FloatieWithAnimation), "Start")]
-    class FloatieWithAnimation_Start_Patch
-    {
-        static void Postfix(LineRenderer ___line)
-        {
+    class FloatieWithAnimation_Start_Patch {
+        static void Postfix(LineRenderer ___line) {
             ___line.startWidth = Floaties.START_WIDTH;
             ___line.endWidth = Floaties.END_WIDTH;
             ___line.material.mainTexture = Floaties.pointerTexture;
@@ -168,10 +147,8 @@ namespace DVDispatcherMod
     }
 
     [HarmonyPatch(typeof(TutorialLineNonVR), "Start")]
-    class TutorialLineNonVR_Start_Patch
-    {
-        static void Postfix(LineRenderer ___line)
-        {
+    class TutorialLineNonVR_Start_Patch {
+        static void Postfix(LineRenderer ___line) {
             ___line.startWidth = Floaties.START_WIDTH;
             ___line.endWidth = Floaties.END_WIDTH;
             ___line.material.mainTexture = Floaties.pointerTexture;
