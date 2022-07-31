@@ -89,7 +89,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Floaties.cs" />
+    <Compile Include="VRDispatchHintShower.cs" />
     <Compile Include="IDispatcherHintShower.cs" />
     <Compile Include="JobDispatch.cs" />
     <Compile Include="Main.cs" />

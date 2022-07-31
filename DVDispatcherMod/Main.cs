@@ -26,7 +26,6 @@ namespace DVDispatcherMod {
             ModEntry.OnToggle = OnToggle;
             ModEntry.OnUpdate = OnUpdate;
             _isEnabled = true;
-            ////Floaties.Initialize();
 
             PointerTexture.Initialize();
 
@@ -62,6 +61,10 @@ namespace DVDispatcherMod {
             if (!_listenersSetup) {
                 // eyesTransform = PlayerManager.PlayerCamera.transform;
                 if (VRManager.IsVREnabled()) {
+                    if (_dispatchHintShower == null) {
+                        _dispatchHintShower = new VRDispatchHintShower();
+                    }
+
                     var rGrab = VRTK_DeviceFinder.GetControllerRightHand(true)?.transform.GetComponentInChildren<VRTK_InteractGrab>();
                     if (rGrab == null) {
                         return;
@@ -92,8 +95,6 @@ namespace DVDispatcherMod {
                     _timer %= POINTER_INTERVAL;
 
                     UpdateDispatcherHint();
-
-                    // TODO set timer to zero in case of newly showing floatie, so a full second can pass until index switches
                 }
             }
         }
