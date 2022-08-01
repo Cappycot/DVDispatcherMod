@@ -109,17 +109,7 @@ namespace DVDispatcherMod {
                 return null;
             }
 
-            DispatcherHint currentHint;
-            if (_holdingRight == null) {
-                currentHint = null;
-            } else {
-                // Calculate tracks that cars are on.
-                _holdingRight.UpdateJobCars();
-                _holdingRight.UpdateJobPrivilege();
-
-                currentHint = new DispatcherHint(_holdingRight.GetFloatieText(_counter), _holdingRight.GetPointerAt(_counter));
-            }
-            return currentHint;
+            return _holdingRight?.GetDispatcherHint(_counter);
         }
 
         static void OnItemGrabbedRight(InventoryItemSpec iis) {
@@ -138,9 +128,10 @@ namespace DVDispatcherMod {
                 }
             }
 
-            UpdateDispatcherHint();
-
+            _counter = 0;
             _timer = 0;
+
+            UpdateDispatcherHint();
         }
 
         static void OnItemUngrabbedRight(InventoryItemSpec iis) {

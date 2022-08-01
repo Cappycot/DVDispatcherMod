@@ -89,6 +89,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TaskOverviewGenerator.cs" />
     <Compile Include="VRDispatchHintShower.cs" />
     <Compile Include="IDispatcherHintShower.cs" />
     <Compile Include="JobDispatch.cs" />
