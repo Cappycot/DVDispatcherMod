@@ -1,5 +1,7 @@
-﻿using Harmony12;
+﻿using System.Linq;
+using Harmony12;
 using System.Reflection;
+using DV.Logic.Job;
 using UnityEngine;
 using UnityModManagerNet;
 using VRTK;
@@ -54,6 +56,7 @@ namespace DVDispatcherMod {
         private static float _timer;
 
         private static JobDispatch _holdingRight;
+        private static JobDispatch _hovered;
 
         static void OnUpdate(UnityModManager.ModEntry mod, float delta) {
             _timer += delta;
@@ -84,6 +87,8 @@ namespace DVDispatcherMod {
                     }
                     grab.Grabbed += OnItemGrabbedRightNonVR;
                     grab.Released += OnItemUngrabbedRightNonVR;
+                    grab.Hovered += OnItemHovered;
+                    grab.Unhovered += OnItemUnhovered;
                     SingletonBehaviour<Inventory>.Instance.ItemAddedToInventory += OnItemAddedToInventory;
                 }
 
@@ -99,6 +104,28 @@ namespace DVDispatcherMod {
             }
         }
 
+        private static void OnItemHovered(GameObject obj) {
+            Job job = null;
+            var jo = obj.GetComponent<JobOverview>();
+            if (jo != null) {
+                job = jo.job;
+            } else {
+                var jb = obj.GetComponent<JobBooklet>();
+                if (jb != null) {
+                    job = jb.job;
+                }
+            }
+            if (job != null) {
+                _hovered = new JobDispatch(job);
+                UpdateDispatcherHint();
+            }
+        }
+
+        private static void OnItemUnhovered(GameObject obj) {
+            _hovered = null;
+            UpdateDispatcherHint();
+        }
+
         private static void UpdateDispatcherHint() {
             var currentHint = GetCurrentDispatcherHint();
             _dispatchHintShower.SetDispatcherHint(currentHint);
@@ -109,7 +136,13 @@ namespace DVDispatcherMod {
                 return null;
             }
 
-            return _holdingRight?.GetDispatcherHint(_counter);
+            if (_holdingRight != null) {
+                return _holdingRight.GetDispatcherHint(_counter);
+            } else if (_hovered != null) {
+                return _hovered.GetDispatcherHint(_counter);
+            } else {
+                return null;
+            }
         }
 
         static void OnItemGrabbedRight(InventoryItemSpec iis) {
@@ -117,21 +150,74 @@ namespace DVDispatcherMod {
                 return;
             }
 
-            // mod.Logger.Log(string.Format("Picked up a(n) {0} in the right hand.", iis.itemName));
-            var jo = iis.GetComponent<JobOverview>();
-            if (jo != null) {
-                _holdingRight = new JobDispatch(jo.job);
-            } else {
-                var jb = iis.GetComponent<JobBooklet>();
-                if (jb != null) {
-                    _holdingRight = new JobDispatch(jb.job);
-                }
+            var job = TryGetJobFromComponent(iis);
+
+            if (job != null) {
+                DebugOutputJob(job);
+
+                _holdingRight = new JobDispatch(job);
             }
 
             _counter = 0;
             _timer = 0;
 
             UpdateDispatcherHint();
+        }
+
+        private static Job TryGetJobFromComponent(Component iis) {
+            var jo = iis.GetComponent<JobOverview>();
+            Job job = null;
+            if (jo != null) {
+                job = jo.job;
+            } else {
+                var jb = iis.GetComponent<JobBooklet>();
+                if (jb != null) {
+                    job = jb.job;
+                }
+            }
+            return job;
+        }
+
+        private static void DebugOutputJob(Job job) {
+            DebugLogIndented(0, job.GetType().Name, job.ID);
+            DebugLogIndented(1, "jobType", job.jobType);
+            DebugLogIndented(1, "State", job.State);
+            DebugLogIndented(1, "chainData");
+            DebugLogIndented(2, "chainOriginYardId", job.chainData.chainOriginYardId);
+            DebugLogIndented(2, "chainDestinationYardId", job.chainData.chainDestinationYardId);
+            DebugLogIndented(1, "tasks");
+            foreach (var jobTask in job.tasks) {
+                DebugOutputTask(2, jobTask);
+            }
+        }
+
+        private static void DebugOutputTask(int indent, Task jobTask) {
+            DebugLogIndented(indent, jobTask.GetType().Name);
+            DebugLogIndented(indent + 1, "InstanceTaskType", jobTask.InstanceTaskType);
+            DebugLogIndented(indent + 1, "state", jobTask.state);
+
+            var taskData = jobTask.GetTaskData();
+            if (taskData.cars != null) {
+                DebugLogIndented(indent + 1, "cars", string.Join(", ", taskData.cars.Select(c => c.ID)));
+            }
+            DebugLogIndented(indent + 1, "startTrack", taskData.startTrack?.ID?.FullDisplayID);
+            DebugLogIndented(indent + 1, "destinationTrack", taskData.destinationTrack?.ID?.FullDisplayID);
+            DebugLogIndented(indent + 1, "warehouseTaskType", taskData.warehouseTaskType);
+
+            if (taskData.nestedTasks != null) {
+                if (taskData.nestedTasks.Any()) {
+                    DebugLogIndented(indent + 1, "nestedTasks (" + taskData.nestedTasks.Count + ")");
+
+                    foreach (var nestedTask in taskData.nestedTasks) {
+                        DebugOutputTask(indent + 2, nestedTask);
+                    }
+                }
+            }
+        }
+
+        private static void DebugLogIndented(int indent, string name, object value = null) {
+            var content = value != null ? (name + ": " + value) : name;
+            ModEntry.Logger.Log(string.Join("", Enumerable.Repeat("    ", indent)) + content);
         }
 
         static void OnItemUngrabbedRight(InventoryItemSpec iis) {
