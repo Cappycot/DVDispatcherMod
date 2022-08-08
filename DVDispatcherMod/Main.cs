@@ -1,7 +1,6 @@
 ﻿using Harmony12;
 using System.Reflection;
 using UnityModManagerNet;
-using VRTK;
 
 /*
  * Visual Studio puts braces on a different line? How do y'all live like this?
@@ -12,11 +11,14 @@ using VRTK;
 namespace DVDispatcherMod {
     static class Main {
         // Time between forced dispatcher updates.
-        public const float POINTER_INTERVAL = 1;
+        private const float POINTER_INTERVAL = 1;
+
+        private static float _timer;
+        private static int _counter;
+
+        private static DispatcherHintManager _dispatcherHintManager;
 
         public static UnityModManager.ModEntry ModEntry { get; private set; }
-
-        private static bool _isEnabled;
 
         static bool Load(UnityModManager.ModEntry modEntry) {
             ModEntry = modEntry;
@@ -24,7 +26,6 @@ namespace DVDispatcherMod {
             harmony.PatchAll(Assembly.GetExecutingAssembly());
             ModEntry.OnToggle = OnToggle;
             ModEntry.OnUpdate = OnUpdate;
-            _isEnabled = true;
 
             PointerTexture.Initialize();
 
@@ -33,87 +34,55 @@ namespace DVDispatcherMod {
 
         // TODO: Make sure OnToggle works.
         static bool OnToggle(UnityModManager.ModEntry _, bool isEnabled) {
-            _isEnabled = isEnabled;
-
-            if (_dispatchHintShower != null) {
-                UpdateDispatcherHint();
+            if (_dispatcherHintManager != null) {
+                _dispatcherHintManager.SetIsEnabled(isEnabled);
             }
 
-            ModEntry.Logger.Log(string.Format("isEnabled toggled to {0}.", _isEnabled));
+            ModEntry.Logger.Log(string.Format("isEnabled toggled to {0}.", isEnabled));
 
             return true;
         }
 
-        private static bool _listenersSetup;
-
-        private static IDispatcherHintShower _dispatchHintShower;
-
-        // Job Holdings
-        private static int _counter;
-        private static float _timer;
-
-        private static IPlayerInteractionManager _playerInteractionManager;
-
         static void OnUpdate(UnityModManager.ModEntry mod, float delta) {
             _timer += delta;
 
-            if (!_listenersSetup) {
-                // eyesTransform = PlayerManager.PlayerCamera.transform;
-                if (VRManager.IsVREnabled()) {
-                    if (_dispatchHintShower == null) {
-                        _dispatchHintShower = new VRDispatchHintShower();
-                    }
-
-                    var rGrab = VRTK_DeviceFinder.GetControllerRightHand(true)?.transform.GetComponentInChildren<VRTK_InteractGrab>();
-                    if (rGrab == null) {
-                        return;
-                    }
-                    //rGrab.ControllerGrabInteractableObject += OnItemGrabbedRightVR;
-                    //rGrab.ControllerStartUngrabInteractableObject += OnItemUngrabbedRightVR;
-                } else {
-                    if (LoadingScreenManager.IsLoading || !WorldStreamingInit.IsLoaded || !SingletonBehaviour<Inventory>.Exists) {
-                        return;
-                    } else if (_dispatchHintShower == null) {
-                        _dispatchHintShower = NonVRDispatcherHintShowerFactory.TryCreate();
-                        return;
-                    }
-                    _playerInteractionManager = NonVRPlayerInteractionManagerFactory.TryCreate();
-                    if (_playerInteractionManager != null) {
-                        _playerInteractionManager.JobOfInterestChanged += HandleJobObInterestChanged;
-                    }
+            if (_dispatcherHintManager == null) {
+                _dispatcherHintManager = TryCreateDispatcherHintManager();
+                if (_dispatcherHintManager == null) {
+                    return;
                 }
 
                 mod.Logger.Log(string.Format("Floaties have been set up, total time elapsed: {0:0.00} seconds.", _timer));
-                _listenersSetup = true;
-            } else {
-                if (_timer > POINTER_INTERVAL) {
-                    _counter++;
-                    _timer %= POINTER_INTERVAL;
+            }
 
-                    UpdateDispatcherHint();
-                }
+
+
+            //if (VRManager.IsVREnabled()) {
+            //    if (_dispatchHintShower == null) {
+            //        _dispatchHintShower = new VRDispatchHintShower();
+            //    }
+
+            //    var rGrab = VRTK_DeviceFinder.GetControllerRightHand(true)?.transform.GetComponentInChildren<VRTK_InteractGrab>();
+            //    if (rGrab == null) {
+            //        return;
+            //    }
+            //    //rGrab.ControllerGrabInteractableObject += OnItemGrabbedRightVR;
+            //    //rGrab.ControllerStartUngrabInteractableObject += OnItemUngrabbedRightVR;
+            //} else {
+
+            if (_timer > POINTER_INTERVAL) {
+                _counter++;
+                _timer %= POINTER_INTERVAL;
+
+                _dispatcherHintManager.SetCounter(_counter);
             }
         }
 
-        private static void HandleJobObInterestChanged() {
-            UpdateDispatcherHint();
-        }
-
-        private static void UpdateDispatcherHint() {
-            var currentHint = GetCurrentDispatcherHint();
-            _dispatchHintShower.SetDispatcherHint(currentHint);
-        }
-
-        private static DispatcherHint GetCurrentDispatcherHint() {
-            if (!_isEnabled) {
-                return null;
-            }
-
-            var job = _playerInteractionManager.JobOfInterest;
-            if (job != null) {
-                return new JobDispatch(job).GetDispatcherHint(_counter);
+        private static DispatcherHintManager TryCreateDispatcherHintManager() {
+            if (VRManager.IsVREnabled()) {
+                return null; // TODO
             } else {
-                return null;
+                return NonVRDispatchHintManagerFactory.TryCreate();
             }
         }
 
