@@ -1,8 +1,5 @@
-﻿using System.Linq;
-using Harmony12;
+﻿using Harmony12;
 using System.Reflection;
-using DV.Logic.Job;
-using UnityEngine;
 using UnityModManagerNet;
 using VRTK;
 
@@ -55,8 +52,7 @@ namespace DVDispatcherMod {
         private static int _counter;
         private static float _timer;
 
-        private static JobDispatch _holdingRight;
-        private static JobDispatch _hovered;
+        private static IPlayerInteractionManager _playerInteractionManager;
 
         static void OnUpdate(UnityModManager.ModEntry mod, float delta) {
             _timer += delta;
@@ -72,8 +68,8 @@ namespace DVDispatcherMod {
                     if (rGrab == null) {
                         return;
                     }
-                    rGrab.ControllerGrabInteractableObject += OnItemGrabbedRightVR;
-                    rGrab.ControllerStartUngrabInteractableObject += OnItemUngrabbedRightVR;
+                    //rGrab.ControllerGrabInteractableObject += OnItemGrabbedRightVR;
+                    //rGrab.ControllerStartUngrabInteractableObject += OnItemUngrabbedRightVR;
                 } else {
                     if (LoadingScreenManager.IsLoading || !WorldStreamingInit.IsLoaded || !SingletonBehaviour<Inventory>.Exists) {
                         return;
@@ -81,15 +77,10 @@ namespace DVDispatcherMod {
                         _dispatchHintShower = NonVRDispatcherHintShowerFactory.TryCreate();
                         return;
                     }
-                    var grab = PlayerManager.PlayerTransform?.GetComponentInChildren<Grabber>();
-                    if (grab == null || SingletonBehaviour<Inventory>.Instance == null) {
-                        return;
+                    _playerInteractionManager = NonVRPlayerInteractionManagerFactory.TryCreate();
+                    if (_playerInteractionManager != null) {
+                        _playerInteractionManager.JobOfInterestChanged += HandleJobObInterestChanged;
                     }
-                    grab.Grabbed += OnItemGrabbedRightNonVR;
-                    grab.Released += OnItemUngrabbedRightNonVR;
-                    grab.Hovered += OnItemHovered;
-                    grab.Unhovered += OnItemUnhovered;
-                    SingletonBehaviour<Inventory>.Instance.ItemAddedToInventory += OnItemAddedToInventory;
                 }
 
                 mod.Logger.Log(string.Format("Floaties have been set up, total time elapsed: {0:0.00} seconds.", _timer));
@@ -104,25 +95,7 @@ namespace DVDispatcherMod {
             }
         }
 
-        private static void OnItemHovered(GameObject obj) {
-            Job job = null;
-            var jo = obj.GetComponent<JobOverview>();
-            if (jo != null) {
-                job = jo.job;
-            } else {
-                var jb = obj.GetComponent<JobBooklet>();
-                if (jb != null) {
-                    job = jb.job;
-                }
-            }
-            if (job != null) {
-                _hovered = new JobDispatch(job);
-                UpdateDispatcherHint();
-            }
-        }
-
-        private static void OnItemUnhovered(GameObject obj) {
-            _hovered = null;
+        private static void HandleJobObInterestChanged() {
             UpdateDispatcherHint();
         }
 
@@ -136,114 +109,113 @@ namespace DVDispatcherMod {
                 return null;
             }
 
-            if (_holdingRight != null) {
-                return _holdingRight.GetDispatcherHint(_counter);
-            } else if (_hovered != null) {
-                return _hovered.GetDispatcherHint(_counter);
+            var job = _playerInteractionManager.JobOfInterest;
+            if (job != null) {
+                return new JobDispatch(job).GetDispatcherHint(_counter);
             } else {
                 return null;
             }
         }
 
-        static void OnItemGrabbedRight(InventoryItemSpec iis) {
-            if (iis == null) {
-                return;
-            }
+        //static void OnItemGrabbedRight(InventoryItemSpec iis) {
+        //    if (iis == null) {
+        //        return;
+        //    }
 
-            var job = TryGetJobFromComponent(iis);
+        //    var job = TryGetJobFromComponent(iis);
 
-            if (job != null) {
-                DebugOutputJob(job);
+        //    if (job != null) {
+        //        DebugOutputJob(job);
 
-                _holdingRight = new JobDispatch(job);
-            }
+        //        _holdingRight = new JobDispatch(job);
+        //    }
 
-            _counter = 0;
-            _timer = 0;
+        //    _counter = 0;
+        //    _timer = 0;
 
-            UpdateDispatcherHint();
-        }
+        //    UpdateDispatcherHint();
+        //}
 
-        private static Job TryGetJobFromComponent(Component iis) {
-            var jo = iis.GetComponent<JobOverview>();
-            Job job = null;
-            if (jo != null) {
-                job = jo.job;
-            } else {
-                var jb = iis.GetComponent<JobBooklet>();
-                if (jb != null) {
-                    job = jb.job;
-                }
-            }
-            return job;
-        }
+        //private static Job TryGetJobFromComponent(Component iis) {
+        //    var jo = iis.GetComponent<JobOverview>();
+        //    Job job = null;
+        //    if (jo != null) {
+        //        job = jo.job;
+        //    } else {
+        //        var jb = iis.GetComponent<JobBooklet>();
+        //        if (jb != null) {
+        //            job = jb.job;
+        //        }
+        //    }
+        //    return job;
+        //}
 
-        private static void DebugOutputJob(Job job) {
-            DebugLogIndented(0, job.GetType().Name, job.ID);
-            DebugLogIndented(1, "jobType", job.jobType);
-            DebugLogIndented(1, "State", job.State);
-            DebugLogIndented(1, "chainData");
-            DebugLogIndented(2, "chainOriginYardId", job.chainData.chainOriginYardId);
-            DebugLogIndented(2, "chainDestinationYardId", job.chainData.chainDestinationYardId);
-            DebugLogIndented(1, "tasks");
-            foreach (var jobTask in job.tasks) {
-                DebugOutputTask(2, jobTask);
-            }
-        }
+        //private static void DebugOutputJob(Job job) {
+        //    DebugLogIndented(0, job.GetType().Name, job.ID);
+        //    DebugLogIndented(1, "jobType", job.jobType);
+        //    DebugLogIndented(1, "State", job.State);
+        //    DebugLogIndented(1, "chainData");
+        //    DebugLogIndented(2, "chainOriginYardId", job.chainData.chainOriginYardId);
+        //    DebugLogIndented(2, "chainDestinationYardId", job.chainData.chainDestinationYardId);
+        //    DebugLogIndented(1, "tasks");
+        //    foreach (var jobTask in job.tasks) {
+        //        DebugOutputTask(2, jobTask);
+        //    }
+        //}
 
-        private static void DebugOutputTask(int indent, Task jobTask) {
-            DebugLogIndented(indent, jobTask.GetType().Name);
-            DebugLogIndented(indent + 1, "InstanceTaskType", jobTask.InstanceTaskType);
-            DebugLogIndented(indent + 1, "state", jobTask.state);
+        //private static void DebugOutputTask(int indent, Task jobTask) {
+        //    DebugLogIndented(indent, jobTask.GetType().Name);
+        //    DebugLogIndented(indent + 1, "InstanceTaskType", jobTask.InstanceTaskType);
+        //    DebugLogIndented(indent + 1, "state", jobTask.state);
 
-            var taskData = jobTask.GetTaskData();
-            if (taskData.cars != null) {
-                DebugLogIndented(indent + 1, "cars", string.Join(", ", taskData.cars.Select(c => c.ID)));
-            }
-            DebugLogIndented(indent + 1, "startTrack", taskData.startTrack?.ID?.FullDisplayID);
-            DebugLogIndented(indent + 1, "destinationTrack", taskData.destinationTrack?.ID?.FullDisplayID);
-            DebugLogIndented(indent + 1, "warehouseTaskType", taskData.warehouseTaskType);
+        //    var taskData = jobTask.GetTaskData();
+        //    if (taskData.cars != null) {
+        //        DebugLogIndented(indent + 1, "cars", string.Join(", ", taskData.cars.Select(c => c.ID)));
+        //    }
+        //    DebugLogIndented(indent + 1, "startTrack", taskData.startTrack?.ID?.FullDisplayID);
+        //    DebugLogIndented(indent + 1, "destinationTrack", taskData.destinationTrack?.ID?.FullDisplayID);
+        //    DebugLogIndented(indent + 1, "warehouseTaskType", taskData.warehouseTaskType);
 
-            if (taskData.nestedTasks != null) {
-                if (taskData.nestedTasks.Any()) {
-                    DebugLogIndented(indent + 1, "nestedTasks (" + taskData.nestedTasks.Count + ")");
+        //    if (taskData.nestedTasks != null) {
+        //        if (taskData.nestedTasks.Any()) {
+        //            DebugLogIndented(indent + 1, "nestedTasks (" + taskData.nestedTasks.Count + ")");
 
-                    foreach (var nestedTask in taskData.nestedTasks) {
-                        DebugOutputTask(indent + 2, nestedTask);
-                    }
-                }
-            }
-        }
+        //            foreach (var nestedTask in taskData.nestedTasks) {
+        //                DebugOutputTask(indent + 2, nestedTask);
+        //            }
+        //        }
+        //    }
+        //}
 
-        private static void DebugLogIndented(int indent, string name, object value = null) {
-            var content = value != null ? (name + ": " + value) : name;
-            ModEntry.Logger.Log(string.Join("", Enumerable.Repeat("    ", indent)) + content);
-        }
+        //private static void DebugLogIndented(int indent, string name, object value = null) {
+        //    var content = value != null ? (name + ": " + value) : name;
+        //    ModEntry.Logger.Log(string.Join("", Enumerable.Repeat("    ", indent)) + content);
+        //}
 
-        static void OnItemUngrabbedRight(InventoryItemSpec iis) {
-            _holdingRight = null;
-            UpdateDispatcherHint();
-        }
+        //static void OnItemUngrabbedRight(InventoryItemSpec iis) {
+        //    _holdingRight = null;
+        //    UpdateDispatcherHint();
+        //}
 
-        // Grab Listeners
-        static void OnItemAddedToInventory(GameObject o, int _) {
-            OnItemUngrabbedRight(o?.GetComponent<InventoryItemSpec>());
-        }
+        //// Grab Listeners
+        //static void OnItemAddedToInventory(GameObject o, int _) {
+        //    OnItemUngrabbedRight(o?.GetComponent<InventoryItemSpec>());
+        //}
 
-        static void OnItemGrabbedRightNonVR(GameObject o) {
-            OnItemGrabbedRight(o?.GetComponent<InventoryItemSpec>());
-        }
+        //static void OnItemGrabbedRightNonVR(GameObject o) {
+        //    OnItemGrabbedRight(o?.GetComponent<InventoryItemSpec>());
+        //}
 
-        static void OnItemUngrabbedRightNonVR(GameObject o) {
-            OnItemUngrabbedRight(o?.GetComponent<InventoryItemSpec>());
-        }
+        //static void OnItemUngrabbedRightNonVR(GameObject o) {
+        //    OnItemUngrabbedRight(o?.GetComponent<InventoryItemSpec>());
+        //}
 
-        static void OnItemGrabbedRightVR(object sender, ObjectInteractEventArgs e) {
-            OnItemGrabbedRight(e.target?.GetComponent<InventoryItemSpec>());
-        }
+        //static void OnItemGrabbedRightVR(object sender, ObjectInteractEventArgs e) {
+        //    OnItemGrabbedRight(e.target?.GetComponent<InventoryItemSpec>());
+        //}
 
-        static void OnItemUngrabbedRightVR(object sender, ObjectInteractEventArgs e) {
-            OnItemUngrabbedRight(e.target?.GetComponent<InventoryItemSpec>());
-        }
+        //static void OnItemUngrabbedRightVR(object sender, ObjectInteractEventArgs e) {
+        //    OnItemUngrabbedRight(e.target?.GetComponent<InventoryItemSpec>());
+        //}
     }
 }
