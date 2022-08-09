@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using DVDispatcherMod.DispatcherHints;
+using UnityEngine;
 using VRTK;
 
-namespace DVDispatcherMod {
+namespace DVDispatcherMod.DispatcherHintShowers {
     public class VRDispatchHintShower : IDispatcherHintShower {
         private static GameObject _floatie;
 

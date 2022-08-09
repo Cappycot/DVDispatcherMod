@@ -1,5 +1,7 @@
 ﻿using Harmony12;
 using System.Reflection;
+using DVDispatcherMod.DispatcherHintManagers;
+using DVDispatcherMod.HarmonyPatches;
 using UnityModManagerNet;
 
 /*

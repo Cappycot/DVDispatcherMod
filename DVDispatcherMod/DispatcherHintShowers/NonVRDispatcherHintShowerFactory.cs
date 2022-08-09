@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace DVDispatcherMod {
+namespace DVDispatcherMod.DispatcherHintShowers {
     public static class NonVRDispatcherHintShowerFactory {
         private static bool _floatieSceneLoaded;
 
@@ -39,46 +39,6 @@ namespace DVDispatcherMod {
             }
             Main.ModEntry.Logger.Log("Found the non VR line.");
             return new NonVRDispatcherHintShower(floatieNonVr, floatieNonVrText, floatieNonVrLine);
-        }
-    }
-
-    public class NonVRDispatcherHintShower : IDispatcherHintShower {
-        private readonly GameObject _floatie;
-        private readonly TextMeshProUGUI _floatieText;
-        private readonly TutorialLineNonVR _floatieLine;
-
-        private bool _currentlyShowing;
-
-        public NonVRDispatcherHintShower(GameObject floatie, TextMeshProUGUI floatieText, TutorialLineNonVR floatieLine) {
-            _floatie = floatie;
-            _floatieText = floatieText;
-            _floatieLine = floatieLine;
-        }
-
-        public void SetDispatcherHint(DispatcherHint dispatcherHintOrNull) {
-            if (dispatcherHintOrNull == null) {
-                if (_currentlyShowing) {
-                    _floatie.SetActive(false);
-                    _floatieText.text = string.Empty;
-                    _floatieLine.attentionTransform = null;
-
-                    _currentlyShowing = false;
-                }
-            } else {
-                if (_currentlyShowing) {
-                    _floatieText.text = dispatcherHintOrNull.Text;
-                    _floatieLine.attentionTransform = dispatcherHintOrNull.AttentionTransform;
-                } else {
-                    _floatie.SetActive(false); // dunno, was in original code like that.
-
-                    _floatieText.text = dispatcherHintOrNull.Text;
-                    _floatieLine.attentionTransform = dispatcherHintOrNull.AttentionTransform;
-
-                    _floatie.SetActive(true);
-
-                    _currentlyShowing = true;
-                }
-            }
         }
     }
 }

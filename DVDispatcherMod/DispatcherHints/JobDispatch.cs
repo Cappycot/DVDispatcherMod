@@ -1,12 +1,12 @@
 ﻿using System;
-using DV.Logic.Job;
-using DV.ServicePenalty;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DV.Logic.Job;
+using DV.ServicePenalty;
 using UnityEngine;
 
-namespace DVDispatcherMod {
+namespace DVDispatcherMod.DispatcherHints {
     public class JobDispatch {
         private readonly Job _job;
 

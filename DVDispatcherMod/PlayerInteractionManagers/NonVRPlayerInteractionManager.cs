@@ -2,23 +2,7 @@
 using DV.Logic.Job;
 using UnityEngine;
 
-namespace DVDispatcherMod {
-    public interface IPlayerInteractionManager {
-        Job JobOfInterest { get; }
-        event Action JobOfInterestChanged;
-    }
-
-    public static class NonVRPlayerInteractionManagerFactory {
-        public static IPlayerInteractionManager TryCreate() {
-            var grabber = PlayerManager.PlayerTransform?.GetComponentInChildren<Grabber>();
-            var inventory = SingletonBehaviour<Inventory>.Instance;
-            if (grabber == null || inventory == null) {
-                return null;
-            }
-            return new NonVRPlayerInteractionManager(grabber, inventory);
-        }
-    }
-
+namespace DVDispatcherMod.PlayerInteractionManagers {
     public class NonVRPlayerInteractionManager : IPlayerInteractionManager {
         private readonly Grabber _grabber;
         private Job _grabbedJob;

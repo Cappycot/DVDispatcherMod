@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace DVDispatcherMod {
+namespace DVDispatcherMod.DispatcherHints {
     public class DispatcherHint {
         public DispatcherHint(string text, Transform attentionTransform) {
             Text = text;
@@ -9,9 +9,5 @@ namespace DVDispatcherMod {
 
         public string Text { get; }
         public Transform AttentionTransform { get; }
-    }
-
-    public interface IDispatcherHintShower {
-        void SetDispatcherHint(DispatcherHint dispatcherHintOrNull);
     }
 }

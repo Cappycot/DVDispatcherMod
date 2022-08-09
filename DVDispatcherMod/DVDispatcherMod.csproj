@@ -89,17 +89,25 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DispatcherHintManager.cs" />
-    <Compile Include="IPlayerInteractionManager.cs" />
+    <Compile Include="DispatcherHintManagers\DispatcherHintManager.cs" />
+    <Compile Include="DispatcherHintManagers\NonVRDispatchHintManagerFactory.cs" />
+    <Compile Include="DispatcherHints\DispatcherHint.cs" />
+    <Compile Include="DispatcherHintShowers\NonVRDispatcherHintShowerFactory.cs" />
+    <Compile Include="HarmonyPatches\FloatieWithAnimation_Start_Patch.cs" />
+    <Compile Include="PlayerInteractionManagers\IPlayerInteractionManager.cs" />
+    <Compile Include="PlayerInteractionManagers\NonVRPlayerInteractionManager.cs" />
+    <Compile Include="PlayerInteractionManagers\NonVRPlayerInteractionManagerFactory.cs" />
     <Compile Include="TaskOverviewGenerator.cs" />
-    <Compile Include="VRDispatchHintShower.cs" />
-    <Compile Include="IDispatcherHintShower.cs" />
-    <Compile Include="JobDispatch.cs" />
+    <Compile Include="DispatcherHintShowers\VRDispatchHintShower.cs" />
+    <Compile Include="DispatcherHintShowers\IDispatcherHintShower.cs" />
+    <Compile Include="DispatcherHints\JobDispatch.cs" />
     <Compile Include="Main.cs" />
-    <Compile Include="NonVRDispatcherHintShower.cs" />
-    <Compile Include="PointerTexture.cs" />
+    <Compile Include="DispatcherHintShowers\NonVRDispatcherHintShower.cs" />
+    <Compile Include="HarmonyPatches\PointerTexture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="HarmonyPatches.cs" />
+    <Compile Include="HarmonyPatches\Constants.cs" />
+    <Compile Include="HarmonyPatches\TutorialLineNonVR_Start_Patch.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

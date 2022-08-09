@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using UnityEngine;
 
-namespace DVDispatcherMod {
+namespace DVDispatcherMod.HarmonyPatches {
     public static class PointerTexture {
         public static Texture2D Texture { get; private set; }
 
