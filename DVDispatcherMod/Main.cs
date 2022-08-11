@@ -1,7 +1,9 @@
 ﻿using Harmony12;
 using System.Reflection;
 using DVDispatcherMod.DispatcherHintManagers;
+using DVDispatcherMod.DispatcherHintShowers;
 using DVDispatcherMod.HarmonyPatches;
+using DVDispatcherMod.PlayerInteractionManagers;
 using UnityModManagerNet;
 
 /*
@@ -57,21 +59,6 @@ namespace DVDispatcherMod {
                 mod.Logger.Log(string.Format("Floaties have been set up, total time elapsed: {0:0.00} seconds.", _timer));
             }
 
-
-
-            //if (VRManager.IsVREnabled()) {
-            //    if (_dispatchHintShower == null) {
-            //        _dispatchHintShower = new VRDispatchHintShower();
-            //    }
-
-            //    var rGrab = VRTK_DeviceFinder.GetControllerRightHand(true)?.transform.GetComponentInChildren<VRTK_InteractGrab>();
-            //    if (rGrab == null) {
-            //        return;
-            //    }
-            //    //rGrab.ControllerGrabInteractableObject += OnItemGrabbedRightVR;
-            //    //rGrab.ControllerStartUngrabInteractableObject += OnItemUngrabbedRightVR;
-            //} else {
-
             if (_timer > POINTER_INTERVAL) {
                 _counter++;
                 _timer %= POINTER_INTERVAL;
@@ -82,44 +69,17 @@ namespace DVDispatcherMod {
 
         private static DispatcherHintManager TryCreateDispatcherHintManager() {
             if (VRManager.IsVREnabled()) {
-                return null; // TODO
+                var playerInteractionManager = VRPlayerInteractionManagerFactory.TryCreate();
+                if (playerInteractionManager == null) {
+                    return null;
+                }
+
+                var dispatchHintShower = new VRDispatchHintShower();
+                return new DispatcherHintManager(playerInteractionManager, dispatchHintShower);
             } else {
                 return NonVRDispatchHintManagerFactory.TryCreate();
             }
         }
-
-        //static void OnItemGrabbedRight(InventoryItemSpec iis) {
-        //    if (iis == null) {
-        //        return;
-        //    }
-
-        //    var job = TryGetJobFromComponent(iis);
-
-        //    if (job != null) {
-        //        DebugOutputJob(job);
-
-        //        _holdingRight = new JobDispatch(job);
-        //    }
-
-        //    _counter = 0;
-        //    _timer = 0;
-
-        //    UpdateDispatcherHint();
-        //}
-
-        //private static Job TryGetJobFromComponent(Component iis) {
-        //    var jo = iis.GetComponent<JobOverview>();
-        //    Job job = null;
-        //    if (jo != null) {
-        //        job = jo.job;
-        //    } else {
-        //        var jb = iis.GetComponent<JobBooklet>();
-        //        if (jb != null) {
-        //            job = jb.job;
-        //        }
-        //    }
-        //    return job;
-        //}
 
         //private static void DebugOutputJob(Job job) {
         //    DebugLogIndented(0, job.GetType().Name, job.ID);
@@ -161,32 +121,6 @@ namespace DVDispatcherMod {
         //private static void DebugLogIndented(int indent, string name, object value = null) {
         //    var content = value != null ? (name + ": " + value) : name;
         //    ModEntry.Logger.Log(string.Join("", Enumerable.Repeat("    ", indent)) + content);
-        //}
-
-        //static void OnItemUngrabbedRight(InventoryItemSpec iis) {
-        //    _holdingRight = null;
-        //    UpdateDispatcherHint();
-        //}
-
-        //// Grab Listeners
-        //static void OnItemAddedToInventory(GameObject o, int _) {
-        //    OnItemUngrabbedRight(o?.GetComponent<InventoryItemSpec>());
-        //}
-
-        //static void OnItemGrabbedRightNonVR(GameObject o) {
-        //    OnItemGrabbedRight(o?.GetComponent<InventoryItemSpec>());
-        //}
-
-        //static void OnItemUngrabbedRightNonVR(GameObject o) {
-        //    OnItemUngrabbedRight(o?.GetComponent<InventoryItemSpec>());
-        //}
-
-        //static void OnItemGrabbedRightVR(object sender, ObjectInteractEventArgs e) {
-        //    OnItemGrabbedRight(e.target?.GetComponent<InventoryItemSpec>());
-        //}
-
-        //static void OnItemUngrabbedRightVR(object sender, ObjectInteractEventArgs e) {
-        //    OnItemUngrabbedRight(e.target?.GetComponent<InventoryItemSpec>());
         //}
     }
 }

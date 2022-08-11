@@ -24,7 +24,7 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
         private void HandleGrabbed(GameObject gameObject) {
             var inventoryItemSpec = gameObject?.GetComponent<InventoryItemSpec>();
             if (inventoryItemSpec != null) {
-                var job = GetJobFromInventoryItemSpec(inventoryItemSpec);
+                var job = TryGetJobFromInventoryItemSpec(inventoryItemSpec);
                 if (job != null) {
                     _grabbedJob = job;
                     JobOfInterestChanged?.Invoke();
@@ -39,7 +39,7 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
 
         private void HandleHovered(GameObject gameObject) {
             if (gameObject != null) {
-                var job = GetJobFromGameObject(gameObject);
+                var job = TryGetJobFromGameObject(gameObject);
                 if (job != null) {
                     _hoveredJob = job;
                     JobOfInterestChanged?.Invoke();
@@ -52,7 +52,7 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
             JobOfInterestChanged?.Invoke();
         }
 
-        private static Job GetJobFromInventoryItemSpec(InventoryItemSpec inventoryItemSpec) {
+        private static Job TryGetJobFromInventoryItemSpec(InventoryItemSpec inventoryItemSpec) {
             if (inventoryItemSpec.GetComponent<JobOverview>() is JobOverview jo) {
                 return jo.job;
             }
@@ -62,7 +62,7 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
             return null;
         }
 
-        private static Job GetJobFromGameObject(GameObject gameObject) {
+        private static Job TryGetJobFromGameObject(GameObject gameObject) {
             if (gameObject.GetComponent<JobOverview>() is JobOverview jo) {
                 return jo.job;
             }
