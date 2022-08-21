@@ -89,6 +89,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DebugOutputJobWriter.cs" />
     <Compile Include="DispatcherHintManagers\DispatcherHintManager.cs" />
     <Compile Include="DispatcherHintManagers\NonVRDispatchHintManagerFactory.cs" />
     <Compile Include="DispatcherHints\DispatcherHint.cs" />

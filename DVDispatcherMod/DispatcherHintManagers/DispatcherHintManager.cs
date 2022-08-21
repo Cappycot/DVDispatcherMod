@@ -30,6 +30,12 @@ namespace DVDispatcherMod.DispatcherHintManagers {
 
         private void HandleJobObInterestChanged() {
             UpdateDispatcherHint();
+
+            // uncomment this to spam the log with outputs of the job and task tree
+            //var job = _playerInteractionManager.JobOfInterest;
+            //if (job != null) {
+            //    DebugOutputJobWriter.DebugOutputJob(job);
+            //}
         }
 
         private void UpdateDispatcherHint() {
