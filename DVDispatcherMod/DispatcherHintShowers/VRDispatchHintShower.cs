@@ -9,7 +9,7 @@ namespace DVDispatcherMod.DispatcherHintShowers {
         public void SetDispatcherHint(DispatcherHint dispatcherHintOrNull) {
             if (dispatcherHintOrNull == null) {
                 if (_floatie != null) {
-                    Object.Destroy(null);
+                    Object.Destroy(_floatie);
                     _floatie = null;
                 }
             } else {
@@ -21,7 +21,6 @@ namespace DVDispatcherMod.DispatcherHintShowers {
                     var position = eyesTransform.position + eyesTransform.forward * 1.5f;
                     var parent = VRTK_DeviceFinder.PlayAreaTransform();
                     _floatie = (Object.Instantiate(Resources.Load("tutorial_floatie"), position, Quaternion.identity, parent) as GameObject);
-
                 }
 
                 _floatie.GetComponent<TutorialFloatie>().UpdateTextExternally(dispatcherHintOrNull.Text);
