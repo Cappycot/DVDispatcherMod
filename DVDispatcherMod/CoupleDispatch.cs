@@ -14,11 +14,13 @@ namespace DVDispatcherMod
         {
             public List<Car> cars;
             public int consistPos;
+            public int numCars;
 
-            public Group(List<Car> cars)
+            public Group(List<Car> cars, int numCars)
             {
                 this.cars = cars;
                 this.consistPos = -1;
+                this.numCars = numCars;
             }
         }
         
@@ -40,19 +42,6 @@ namespace DVDispatcherMod
             this.uncouple = uncouple;
         }
 
-        /*
-         * Cars are in same group or k different groups.
-         * Groups are part of last loco trainset or separated.
-         * 
-         * "These cars are in k different consists on tracks..."
-         *  - Point alternate between consists.
-         *  
-         * "These cars are on track xxx."
-         *  - Point to closest first/last car and get track id of closest car.
-         *  
-         * "These cars are kth in your current consist."
-         *  - Point to closest first/last car.
-         */
         string IDispatch.GetFloatieText(int index)
         {
             if (groups.Count < 1)
@@ -69,33 +58,61 @@ namespace DVDispatcherMod
                 int destCars = cars.Count - groups.Aggregate(0, (c, g) => c + g.cars.Count);
                 if (destCars > 0)
                 {
-                    sb.AppendFormat("{0} car", destCars);
-                    if (destCars > 1)
-                        sb.Append("s are");
-                    else
-                        sb.Append(" is");
-                    sb.Append(" already on the destination track.");
+                    sb.AppendFormat("At Destination: {0} Car", destCars);
+                    if (destCars != 1)
+                        sb.Append('s');
                 }
                 // Go through locations of all groups of cars.
                 int i = 0;
                 // For groups of cars part of the last consist.
                 if (groups.Any(g => g.consistPos != -1))
                 {
+                    if (destCars > 0)
+                        sb.Append('\n');
+                    sb.Append("In Current Consist:");
                     for (; groups[i].consistPos != -1 && i < groups.Count; i++)
                     {
-
+                        if (i > 0)
+                            sb.Append(',');
+                        sb.Append(' ');
+                        int place = groups[i].consistPos;
+                        if (i == index)
+                            sb.Append(Utils.ColorText("#F29839", string.Format("{0}{1}", place, Utils.PlaceSuffix(place))));
+                        else
+                        {
+                            sb.Append(place);
+                            sb.Append(Utils.PlaceSuffix(place));
+                        }
                     }
                 }
-                else
-                {
-                    sb.Append(" ");
-                }
                 // For detached groups of cars.
+                int j = i;
                 if (groups.Any(g => g.consistPos == -1))
                 {
+                    if (i > 0)
+                        sb.Append("\nOther Locations:");
+                    else
+                        sb.Append("Car Locations:");
                     for (; i < groups.Count; i++)
                     {
-
+                        Car car = Utils.GetClosestFirstLastCar(groups[i].cars)?.logicCar;
+                        // TODO: Null checks.
+                        if (i > j)
+                            sb.Append(',');
+                        sb.Append(' ');
+                        Track t = car.CurrentTrack;
+                        if (t == track)
+                        {
+                            t = car.FrontBogieTrack;
+                            if (t == track)
+                                t = car.RearBogieTrack;
+                        }
+                        if (i == index)
+                            sb.Append(Utils.ColorText("#F29839", t.ID.TrackPartOnly));
+                        else
+                        {
+                            sb.Append(t.ID.TrackPartOnly);
+                        }
                     }
                 }
                 return sb.ToString();
@@ -107,9 +124,7 @@ namespace DVDispatcherMod
             if (groups.Count < 1)
             {
                 if (uncouple)
-                {
-                    return null;
-                }
+                    return Utils.GetClosestCar(cars.Keys.ToList())?.transform;
                 else
                     return null; // Should not happen.
             }
@@ -127,12 +142,8 @@ namespace DVDispatcherMod
         {
             // Recatalogue groups of cars for this task.
             groups.Clear();
-            foreach (Car c in cars.Keys)
-                cars[c] = false;
-            foreach (Car c in cars.Keys)
-            {
-                bool test = uncouple && c.BogiesOnSameTrack && c.CurrentTrack == track;
-            }
+            foreach (Car car in cars.Keys)
+                cars[car] = false;
             // Will go through up to cars.Count different groups.
             List<Group> detachedGroups = new List<Group>();
             foreach (Car car in cars.Keys)
@@ -141,47 +152,52 @@ namespace DVDispatcherMod
                     continue;
                 while (!cars[car])
                 {
-                    /*
-                     * Comb through the trainset for contiguous groups of cars that are associated with this task.
-                     */
+                    // Comb through the trainset for contiguous groups of cars that are associated with this task.
                     Trainset trainset = trainCar.trainset;
 
+                    // List of cars not on the destination rail.
                     List<Car> currentCars = new List<Car>();
-                    bool inGroup = false;
-
-                    for (int i = 0; i < trainset.cars.Count; i++)
+                    // Total number of cars in group including destination rail.
+                    int numCars = 0;
+                    bool inGroup = false; // Tracks a group of contiguous cars.
+                    int i = 0;
+                    //
+                    for (; i < trainset.cars.Count; i++)
                     {
                         TrainCar tc = trainset.cars[i];
                         Car c = tc.logicCar;
-                        if (c != null && cars.ContainsKey(c) && !cars[c])
+                        bool isGroupCar = c != null && cars.ContainsKey(c) && !cars[c];
+                        bool reachedDest = isGroupCar && uncouple && c.CurrentTrack == track && c.BogiesOnSameTrack;
+                        if (reachedDest)
+                            cars[c] = true;
+                        // If this is an uncoupling task, only add cars that have not reached dest.
+                        if (isGroupCar && !reachedDest)
                         {
                             cars[c] = true;
-                            // If this is an uncoupling dispatch, only add if car is not on destination.
-                            if (!uncouple || c.CurrentTrack != track || !c.BogiesOnSameTrack)
-                                currentCars.Add(c);
+                            currentCars.Add(c);
                             inGroup = true;
+                            numCars++;
                         }
                         else if (inGroup)
-                        {
-                            if (currentCars.Count > 0)
-                            {
-                                Group group = new Group(currentCars);
-                                if (trainset == PlayerManager.LastLoco?.trainset)
-                                {
-                                    int place = i - currentCars.Count;
-                                    if (!trainset.cars.First().IsLoco && trainset.cars.Last().IsLoco)
-                                    {
-                                        currentCars.Reverse();
-                                        place = trainset.cars.Count - i;
-                                    }
-                                    group.consistPos = place;
-                                    groups.Add(group);
-                                }
-                                else
-                                    detachedGroups.Add(group);
-                            }
                             break;
+                    }
+                    // Add current group to list of car groups.
+                    if (currentCars.Count > 0)
+                    {
+                        Group group = new Group(currentCars, numCars);
+                        if (trainset == PlayerManager.LastLoco?.trainset)
+                        {
+                            int place = i - currentCars.Count + 1;
+                            if (!trainset.cars.First().IsLoco && trainset.cars.Last().IsLoco)
+                            {
+                                currentCars.Reverse();
+                                place = trainset.cars.Count - i + 1;
+                            }
+                            group.consistPos = place;
+                            groups.Add(group);
                         }
+                        else
+                            detachedGroups.Add(group);
                     }
                 }
             }

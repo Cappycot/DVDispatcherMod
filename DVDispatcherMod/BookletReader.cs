@@ -16,6 +16,7 @@ namespace DVDispatcherMod
                 switch (__result[i])
                 {
                     case CoverPageTemplatePaperData cptpd:
+                        dispatches[i] = null;
                         break;
                     case TaskTemplatePaperData ttpd:
                         switch (ttpd.taskType) {
@@ -26,17 +27,19 @@ namespace DVDispatcherMod
                                 dispatches[i] = new CoupleDispatch(job, ttpd, true);
                                 break;
                             case "HAUL":
+
                             case "LOAD":
                             case "UNLOAD":
+
                             default:
-                                dispatches[i] = new NullDispatch();
+                                dispatches[i] = null;
                                 break;
                         }
                         break;
                     case FrontPageTemplatePaperData fptpd:
                     case ValidateJobTaskTemplatePaperData _:
                     default:
-                        dispatches[i] = new NullDispatch();
+                        dispatches[i] = null;
                         break;
                 }
             }
