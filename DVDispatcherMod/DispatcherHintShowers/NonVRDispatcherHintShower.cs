@@ -28,12 +28,12 @@ namespace DVDispatcherMod.DispatcherHintShowers {
             } else {
                 if (_currentlyShowing) {
                     _floatieText.text = dispatcherHintOrNull.Text;
-                    _floatieLine.attentionTransform = dispatcherHintOrNull.AttentionTransform;
+                    _floatieLine.attentionTransform = dispatcherHintOrNull.AttentionTransformOrNull;
                 } else {
                     _floatie.SetActive(false); // dunno, was in original code like that.
 
                     _floatieText.text = dispatcherHintOrNull.Text;
-                    _floatieLine.attentionTransform = dispatcherHintOrNull.AttentionTransform;
+                    _floatieLine.attentionTransform = dispatcherHintOrNull.AttentionTransformOrNull;
 
                     _floatie.SetActive(true);
 

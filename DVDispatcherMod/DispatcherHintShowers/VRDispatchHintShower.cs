@@ -24,7 +24,7 @@ namespace DVDispatcherMod.DispatcherHintShowers {
                 }
 
                 _floatie.GetComponent<TutorialFloatie>().UpdateTextExternally(dispatcherHintOrNull.Text);
-                _floatie.GetComponent<Floatie>().attentionPoint = dispatcherHintOrNull.AttentionTransform;
+                _floatie.GetComponent<Floatie>().attentionPoint = dispatcherHintOrNull.AttentionTransformOrNull;
             }
         }
     }

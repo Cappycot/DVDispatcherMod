@@ -94,6 +94,7 @@
     <Compile Include="DispatcherHintManagers\NonVRDispatchHintManagerFactory.cs" />
     <Compile Include="DispatcherHints\DispatcherHint.cs" />
     <Compile Include="DispatcherHintShowers\NonVRDispatcherHintShowerFactory.cs" />
+    <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="HarmonyPatches\FloatieWithAnimation_Start_Patch.cs" />
     <Compile Include="PlayerInteractionManagers\IPlayerInteractionManager.cs" />
     <Compile Include="PlayerInteractionManagers\NonVRPlayerInteractionManager.cs" />
