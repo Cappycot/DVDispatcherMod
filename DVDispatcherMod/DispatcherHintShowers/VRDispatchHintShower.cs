@@ -4,7 +4,15 @@ using VRTK;
 
 namespace DVDispatcherMod.DispatcherHintShowers {
     public class VRDispatchHintShower : IDispatcherHintShower {
-        private static GameObject _floatie;
+        private readonly Transform _attentionLineTransform;
+
+        private GameObject _floatie;
+
+        public VRDispatchHintShower() {
+            // transforms cannot be instantiated directly, they always live within a game object. thus we create a single (unnecessary) game object and keep it's transform
+            var transformGivingGameObject = new GameObject();
+            _attentionLineTransform = transformGivingGameObject.transform;
+        }
 
         public void SetDispatcherHint(DispatcherHint dispatcherHintOrNull) {
             if (dispatcherHintOrNull == null) {
@@ -24,7 +32,11 @@ namespace DVDispatcherMod.DispatcherHintShowers {
                 }
 
                 _floatie.GetComponent<TutorialFloatie>().UpdateTextExternally(dispatcherHintOrNull.Text);
-                _floatie.GetComponent<Floatie>().attentionPoint = dispatcherHintOrNull.AttentionTransformOrNull;
+
+                if (dispatcherHintOrNull.AttentionPoint != null) {
+                    _attentionLineTransform.position = dispatcherHintOrNull.AttentionPoint.Value;
+                    _floatie.GetComponent<Floatie>().attentionPoint = _attentionLineTransform;
+                }
             }
         }
     }

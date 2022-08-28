@@ -92,6 +92,8 @@
     <Compile Include="DebugOutputJobWriter.cs" />
     <Compile Include="DispatcherHintManagers\DispatcherHintManager.cs" />
     <Compile Include="DispatcherHintManagers\NonVRDispatchHintManagerFactory.cs" />
+    <Compile Include="DispatcherHints\AdjacentCarsCenterFinder.cs" />
+    <Compile Include="DispatcherHints\AdjacentCarsGrouper.cs" />
     <Compile Include="DispatcherHints\DispatcherHint.cs" />
     <Compile Include="DispatcherHintShowers\NonVRDispatcherHintShowerFactory.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />

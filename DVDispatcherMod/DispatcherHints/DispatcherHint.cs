@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace DVDispatcherMod.DispatcherHints {
     public class DispatcherHint {
-        public DispatcherHint(string text, [CanBeNull] Transform attentionTransformOrNull = null) {
+        public DispatcherHint(string text, [CanBeNull] Vector3? attentionPoint = null) {
             Text = text;
-            AttentionTransformOrNull = attentionTransformOrNull;
+            AttentionPoint = attentionPoint;
         }
 
         public string Text { get; }
-        [CanBeNull] public Transform AttentionTransformOrNull { get; }
+        [CanBeNull] public Vector3? AttentionPoint { get; }
     }
 }

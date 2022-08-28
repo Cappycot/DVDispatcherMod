@@ -76,9 +76,9 @@ namespace DVDispatcherMod.DispatcherHints {
 
             var floatieText = dispatcherHintText + Environment.NewLine + taskOverview;
 
-            var attentionTransform = dispatchTrainSets[highlightTrainSetIndex].CarGroupTransforms[highlightCarGroupIndex];
+            var attentionPoint = dispatchTrainSets[highlightTrainSetIndex].CarGroupAttentionPoints[highlightCarGroupIndex];
 
-            return new DispatcherHint(floatieText, attentionTransform);
+            return new DispatcherHint(floatieText, attentionPoint);
         }
 
         private List<DispatchTrainSet> GetDispatchTrainSets(List<Task> carRelevantTasks) {
@@ -93,7 +93,7 @@ namespace DVDispatcherMod.DispatcherHints {
                     .Select(g => new DispatchTrainSet(
                         GetNamedTrackIDFromPreferredCarsOrTrainSet(g.ToList(), g.Key),
                         IsAnyLocoInConsist(g.Key),
-                        GroupAdjacentCars(g).Select(GetTransformFromAdjacentCars).ToList())
+                        AdjacentCarsGrouper.GetGroups(g).Select(AdjacentCarsCenterFinder.FindCenter).ToList())
                     ).ToList();
 
             return dispatchTrainSets;
@@ -118,30 +118,6 @@ namespace DVDispatcherMod.DispatcherHints {
 
         private static bool IsAnyLocoInConsist(Trainset trainset) {
             return trainset.cars.Any(c => c.IsLoco);
-        }
-
-        private static List<List<TrainCar>> GroupAdjacentCars(IEnumerable<TrainCar> trainCars) {
-            return trainCars.OrderBy(c => c.indexInTrainset).Aggregate(new List<List<TrainCar>>(), AddCarToAdjacencyAggregatedCars);
-        }
-
-        private static List<List<TrainCar>> AddCarToAdjacencyAggregatedCars(List<List<TrainCar>> carGroups, TrainCar trainCar) {
-            if (carGroups.Any()) {
-                var lastCarGrop = carGroups.Last();
-                var lastTrainCar = lastCarGrop.Last();
-                if (lastTrainCar.indexInTrainset + 1 == trainCar.indexInTrainset) {
-                    lastCarGrop.Add(trainCar);
-                    return carGroups;
-                }
-            }
-
-            carGroups.Add(new List<TrainCar> { trainCar });
-
-            return carGroups;
-        }
-
-        private static Transform GetTransformFromAdjacentCars(List<TrainCar> cars) {
-            // it would be nice if we could point to the middle of the 2 center cars in case the number of cars is even
-            return cars[cars.Count / 2].transform;
         }
 
         /// <summary>
@@ -179,7 +155,7 @@ namespace DVDispatcherMod.DispatcherHints {
             if (dispatchTrainSets.Count == 1) {
                 var dispatchTrainSet = dispatchTrainSets[0];
                 var sb = new StringBuilder($"The cars for job {_job.ID} are in the same consist");
-                var carGroupCount = dispatchTrainSet.CarGroupTransforms.Count;
+                var carGroupCount = dispatchTrainSet.CarGroupAttentionPoints.Count;
                 if (carGroupCount > 1) {
                     sb.Append($" (but in {carGroupCount} distinct car groups)");
                 }
@@ -229,12 +205,12 @@ namespace DVDispatcherMod.DispatcherHints {
         }
 
         private void GetHighlightedTrainSetAndCarGroupIndex(int unboundedHighlightIndex, List<DispatchTrainSet> dispatchTrainSets, out int trainSetIndex, out int carGroupIndex) {
-            var highlightIndex = unboundedHighlightIndex % dispatchTrainSets.Sum(t => t.CarGroupTransforms.Count);
+            var highlightIndex = unboundedHighlightIndex % dispatchTrainSets.Sum(t => t.CarGroupAttentionPoints.Count);
 
             int currentIndex = 0;
             for (var currentTrainSetIndex = 0; currentTrainSetIndex < dispatchTrainSets.Count; currentTrainSetIndex += 1) {
                 var currentTrainSet = dispatchTrainSets[currentTrainSetIndex];
-                for (var currentCarGroupIndex = 0; currentCarGroupIndex < currentTrainSet.CarGroupTransforms.Count; currentCarGroupIndex += 1) {
+                for (var currentCarGroupIndex = 0; currentCarGroupIndex < currentTrainSet.CarGroupAttentionPoints.Count; currentCarGroupIndex += 1) {
                     if (currentIndex == highlightIndex) {
                         trainSetIndex = currentTrainSetIndex;
                         carGroupIndex = currentCarGroupIndex;
@@ -249,15 +225,15 @@ namespace DVDispatcherMod.DispatcherHints {
         }
 
         private class DispatchTrainSet {
-            public DispatchTrainSet(string trackIDOrNull, bool hasLocoHooked, List<Transform> carGroupTransforms) {
+            public DispatchTrainSet(string trackIDOrNull, bool hasLocoHooked, List<Vector3> carGroupAttentionPoints) {
                 TrackIDOrNull = trackIDOrNull;
                 HasLocoHooked = hasLocoHooked;
-                CarGroupTransforms = carGroupTransforms;
+                CarGroupAttentionPoints = carGroupAttentionPoints;
             }
 
             public string TrackIDOrNull { get; }
             public bool HasLocoHooked { get; }
-            public List<Transform> CarGroupTransforms { get; }
+            public List<Vector3> CarGroupAttentionPoints { get; }
         }
     }
 }
