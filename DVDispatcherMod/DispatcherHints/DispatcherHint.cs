@@ -1,13 +1,14 @@
-﻿using UnityEngine;
+﻿using JetBrains.Annotations;
+using UnityEngine;
 
 namespace DVDispatcherMod.DispatcherHints {
     public class DispatcherHint {
-        public DispatcherHint(string text, Transform attentionTransform) {
+        public DispatcherHint(string text, [CanBeNull] Vector3? attentionPoint = null) {
             Text = text;
-            AttentionTransform = attentionTransform;
+            AttentionPoint = attentionPoint;
         }
 
         public string Text { get; }
-        public Transform AttentionTransform { get; }
+        [CanBeNull] public Vector3? AttentionPoint { get; }
     }
 }
