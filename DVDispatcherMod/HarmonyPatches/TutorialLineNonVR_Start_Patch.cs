@@ -2,7 +2,7 @@
 using UnityEngine;
 
 namespace DVDispatcherMod.HarmonyPatches {
-    [HarmonyPatch(typeof(TutorialLineNonVR), "Start")]
+    [HarmonyPatch(typeof(NonVRLineRendererController), "Start")]
     class TutorialLineNonVR_Start_Patch {
         static void Postfix(LineRenderer ___line) {
             ___line.startWidth = Constants.START_WIDTH;

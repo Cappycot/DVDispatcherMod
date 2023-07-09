@@ -1,4 +1,6 @@
 ﻿using System;
+using DV.Interaction;
+using DV.InventorySystem;
 using DV.Logic.Job;
 using UnityEngine;
 
@@ -10,18 +12,20 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
 
         public NonVRPlayerInteractionManager(Grabber grabber, Inventory inventory) {
             _grabber = grabber;
-            grabber.Grabbed += HandleGrabbed;
-            grabber.Released += _ => HandleHeldItemReleased();
-            grabber.Hovered += HandleHovered;
-            grabber.Unhovered += _ => HandleUnhovered();
-            inventory.ItemAddedToInventory += (go, i) => HandleHeldItemReleased();
+            // TODO unclear if this is right
+            grabber.GrabStarted += HandleGrabbed;
+            grabber.GrabStopped += _ => HandleHeldItemReleased();
+            grabber.Raycaster.Hovered += HandleHovered;
+            grabber.Raycaster.UnHovered += _ => HandleUnhovered();
+            //inventory.ItemAddedToInventory += (go, i) => HandleHeldItemReleased();
         }
 
         public Job JobOfInterest => _grabbedJob ?? _hoveredJob;
 
         public event Action JobOfInterestChanged;
 
-        private void HandleGrabbed(GameObject gameObject) {
+        private void HandleGrabbed(AGrabHandler grabHandler) {
+            var gameObject = GetGameObject(grabHandler);
             var inventoryItemSpec = gameObject?.GetComponent<InventoryItemSpec>();
             if (inventoryItemSpec != null) {
                 var job = TryGetJobFromInventoryItemSpec(inventoryItemSpec);
@@ -37,7 +41,8 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
             JobOfInterestChanged?.Invoke();
         }
 
-        private void HandleHovered(GameObject gameObject) {
+        private void HandleHovered(AGrabHandler grabHandler) {
+            var gameObject = GetGameObject(grabHandler);
             if (gameObject != null) {
                 var job = TryGetJobFromGameObject(gameObject);
                 if (job != null) {
@@ -50,6 +55,11 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
         private void HandleUnhovered() {
             _hoveredJob = null;
             JobOfInterestChanged?.Invoke();
+        }
+
+        // TODO unclear if this is right
+        private static GameObject GetGameObject(AGrabHandler grabHandler) {
+            return grabHandler.GetComponent<InventoryItemSpec>()?.gameObject;
         }
 
         private static Job TryGetJobFromInventoryItemSpec(InventoryItemSpec inventoryItemSpec) {

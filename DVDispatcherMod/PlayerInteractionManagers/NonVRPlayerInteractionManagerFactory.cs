@@ -1,4 +1,8 @@
-﻿namespace DVDispatcherMod.PlayerInteractionManagers {
+﻿using DV.Interaction;
+using DV.InventorySystem;
+using DV.Utils;
+
+namespace DVDispatcherMod.PlayerInteractionManagers {
     public static class NonVRPlayerInteractionManagerFactory {
         public static IPlayerInteractionManager TryCreate() {
             var grabber = PlayerManager.PlayerTransform?.GetComponentInChildren<Grabber>();

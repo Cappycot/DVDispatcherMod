@@ -19,25 +19,32 @@ namespace DVDispatcherMod.DispatcherHintShowers {
                 }
                 return null;
             }
+
+            Main.ModEntry.Logger.Log("Found the GameObject [NonVRFloatie].");
+            
             g = Object.Instantiate(g); // The tutorial sequence destroys non VR floaties, so make our own.
+            Main.ModEntry.Logger.Log("Duplicated the GameObject [NonVRFloatie].");
 
             var floatieNonVr = g.GetComponentInChildren<Image>(true)?.gameObject;
             if (floatieNonVr == null) {
+                Main.ModEntry.Logger.Log("Could not find the floatieNonVr.");
                 return null;
             }
-            Main.ModEntry.Logger.Log("Found the non VR float.");
+            Main.ModEntry.Logger.Log("Found the floatieNonVr.");
 
             var floatieNonVrText = floatieNonVr.GetComponentInChildren<TextMeshProUGUI>(true);
             if (floatieNonVrText == null) {
+                Main.ModEntry.Logger.Log("Could not find the floatieNonVrText.");
                 return null;
             }
-            Main.ModEntry.Logger.Log("Found the non VR text.");
+            Main.ModEntry.Logger.Log("Found the floatieNonVrText.");
 
-            var floatieNonVrLine = floatieNonVr.GetComponentInChildren<TutorialLineNonVR>(true);
+            var floatieNonVrLine = floatieNonVr.GetComponentInChildren<NonVRLineRendererController>(true);
             if (floatieNonVrLine == null) {
+                Main.ModEntry.Logger.Log("Could not find the floatieNonVrLine.");
                 return null;
             }
-            Main.ModEntry.Logger.Log("Found the non VR line.");
+            Main.ModEntry.Logger.Log("Found the floatieNonVrLine.");
             return new NonVRDispatcherHintShower(floatieNonVr, floatieNonVrText, floatieNonVrLine);
         }
     }

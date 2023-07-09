@@ -50,6 +50,8 @@ namespace DVDispatcherMod {
         static void OnUpdate(UnityModManager.ModEntry mod, float delta) {
             _timer += delta;
 
+            Main.ModEntry.Logger.Log("OnUpdate.");
+
             if (_dispatcherHintManager == null) {
                 _dispatcherHintManager = TryCreateDispatcherHintManager();
                 if (_dispatcherHintManager == null) {

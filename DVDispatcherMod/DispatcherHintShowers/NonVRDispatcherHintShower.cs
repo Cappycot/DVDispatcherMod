@@ -6,13 +6,13 @@ namespace DVDispatcherMod.DispatcherHintShowers {
     public class NonVRDispatcherHintShower : IDispatcherHintShower {
         private readonly GameObject _floatie;
         private readonly TextMeshProUGUI _floatieText;
-        private readonly TutorialLineNonVR _floatieLine;
+        private readonly NonVRLineRendererController _floatieLine;
         
         private readonly Transform _attentionLineTransform;
 
         private bool _currentlyShowing;
 
-        public NonVRDispatcherHintShower(GameObject floatie, TextMeshProUGUI floatieText, TutorialLineNonVR floatieLine) {
+        public NonVRDispatcherHintShower(GameObject floatie, TextMeshProUGUI floatieText, NonVRLineRendererController floatieLine) {
             _floatie = floatie;
             _floatieText = floatieText;
             _floatieLine = floatieLine;
