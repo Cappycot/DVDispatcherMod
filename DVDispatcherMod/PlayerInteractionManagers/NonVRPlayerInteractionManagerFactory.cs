@@ -1,16 +1,13 @@
 ﻿using DV.Interaction;
-using DV.InventorySystem;
-using DV.Utils;
 
 namespace DVDispatcherMod.PlayerInteractionManagers {
     public static class NonVRPlayerInteractionManagerFactory {
         public static IPlayerInteractionManager TryCreate() {
             var grabber = PlayerManager.PlayerTransform?.GetComponentInChildren<Grabber>();
-            var inventory = SingletonBehaviour<Inventory>.Instance;
-            if (grabber == null || inventory == null) {
+            if (grabber == null) {
                 return null;
             }
-            return new NonVRPlayerInteractionManager(grabber, inventory);
+            return new NonVRPlayerInteractionManager(grabber);
         }
     }
 }

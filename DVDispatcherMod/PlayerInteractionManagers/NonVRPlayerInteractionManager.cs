@@ -1,23 +1,21 @@
 ﻿using System;
 using DV.Interaction;
-using DV.InventorySystem;
 using DV.Logic.Job;
 using UnityEngine;
 
 namespace DVDispatcherMod.PlayerInteractionManagers {
-    public class NonVRPlayerInteractionManager : IPlayerInteractionManager {
+    public sealed class NonVRPlayerInteractionManager : IPlayerInteractionManager {
         private readonly Grabber _grabber;
         private Job _grabbedJob;
         private Job _hoveredJob;
 
-        public NonVRPlayerInteractionManager(Grabber grabber, Inventory inventory) {
+        public NonVRPlayerInteractionManager(Grabber grabber) {
             _grabber = grabber;
-            // TODO unclear if this is right
-            grabber.GrabStarted += HandleGrabbed;
-            grabber.GrabStopped += _ => HandleHeldItemReleased();
-            grabber.Raycaster.Hovered += HandleHovered;
-            grabber.Raycaster.UnHovered += _ => HandleUnhovered();
-            //inventory.ItemAddedToInventory += (go, i) => HandleHeldItemReleased();
+
+            _grabber.GrabStarted += HandleGrabbed;
+            _grabber.GrabStopped += HandleHeldItemReleased;
+            _grabber.Raycaster.Hovered += HandleHovered;
+            _grabber.Raycaster.UnHovered += HandleUnhovered;
         }
 
         public Job JobOfInterest => _grabbedJob ?? _hoveredJob;
@@ -36,7 +34,7 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
             }
         }
 
-        private void HandleHeldItemReleased() {
+        private void HandleHeldItemReleased(AGrabHandler grabHandler) {
             _grabbedJob = null;
             JobOfInterestChanged?.Invoke();
         }
@@ -52,12 +50,11 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
             }
         }
 
-        private void HandleUnhovered() {
+        private void HandleUnhovered(AGrabHandler aGrabHandler) {
             _hoveredJob = null;
             JobOfInterestChanged?.Invoke();
         }
 
-        // TODO unclear if this is right
         private static GameObject GetGameObject(AGrabHandler grabHandler) {
             return grabHandler.GetComponent<InventoryItemSpec>()?.gameObject;
         }
@@ -80,6 +77,13 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
                 return jb.job;
             }
             return null;
+        }
+
+        public void Dispose() {
+            _grabber.GrabStarted += HandleGrabbed;
+            _grabber.GrabStopped += HandleHeldItemReleased;
+            _grabber.Raycaster.Hovered += HandleHovered;
+            _grabber.Raycaster.UnHovered += HandleUnhovered;
         }
     }
 }

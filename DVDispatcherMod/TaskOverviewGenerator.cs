@@ -1,58 +1,98 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using DV.Logic.Job;
+using UnityEngine;
 
 namespace DVDispatcherMod {
-    public static class TaskOverviewGenerator {
-        public static string GetTaskOverview(Job job) {
-            var stringBuilder = new StringBuilder();
-            GenerateTaskOverview(0, job.tasks.First(), stringBuilder);
-            return stringBuilder.ToString();
+    public class TaskOverviewGenerator {
+        private static readonly FieldInfo StationControllerStationRangeField = typeof(StationController).GetField("stationRange", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        private readonly Dictionary<string, Color> _yardID2Color;
+
+        public TaskOverviewGenerator() {
+            _yardID2Color = StationController.allStations.ToDictionary(s => s.stationInfo.YardID, s => s.stationInfo.StationColor);
         }
 
-        private static void GenerateTaskOverview(int indent, Task task, StringBuilder sb) {
-            AppendTaskLine(indent, task, sb);
+        public string GetTaskOverview(Job job) {
+            var nearestYardID = StationController.allStations.OrderBy(s => ((StationJobGenerationRange)StationControllerStationRangeField.GetValue(s)).PlayerSqrDistanceFromStationCenter).FirstOrDefault()?.stationInfo.YardID;
 
+            return GenerateTaskOverview(0, job.tasks.First(), nearestYardID);
+        }
+
+        private string GenerateTaskOverview(int indent, Task task, string nearestYardID) {
             if (task.InstanceTaskType == TaskType.Parallel || task.InstanceTaskType == TaskType.Sequential) {
                 var taskData = task.GetTaskData();
 
-                foreach (var nestedTask in taskData.nestedTasks) {
-                    GenerateTaskOverview(indent + 1, nestedTask, sb);
-                }
+                //if (taskData.nestedTasks.Count == 1) {
+                //    GenerateTaskOverview(indent, taskData.nestedTasks[0], sb);
+                //} else {
+                //    AppendTaskLine(indent, task, sb);
+
+                return string.Join(Environment.NewLine, taskData.nestedTasks.Select(t => GenerateTaskOverview(indent + 1, t, nearestYardID)));
+                //}
+            } else {
+                return GetTaskString(indent, task, nearestYardID);
             }
         }
 
-        private static void AppendTaskLine(int indent, Task task, StringBuilder sb) {
+        private string GetTaskString(int indent, Task task, string nearestYardID) {
             var taskData = task.GetTaskData();
-            if (task.state == TaskState.Done) {
-                sb.Append("<color=#00FF00>");
-            } else if (task.state == TaskState.Failed) {
-                sb.Append("<color=#FF0000>");
-            }
+
+            var stringBuilder = new StringBuilder();
 
             if (task.InstanceTaskType == TaskType.Parallel) {
-                AppendIndented(indent, "Parallel", sb);
+                AppendIndented(indent, "Parallel", stringBuilder);
             } else if (task.InstanceTaskType == TaskType.Sequential) {
-                AppendIndented(indent, "Sequential", sb);
+                AppendIndented(indent, "Sequential", stringBuilder);
             } else if (task.InstanceTaskType == TaskType.Transport) {
-                AppendIndented(indent, $"Transport {taskData.cars.Count} cars from {taskData.startTrack.ID.TrackPartOnly} to {taskData.destinationTrack.ID.TrackPartOnly}", sb);
+                AppendIndented(indent, $"Transport {FormatNumberOfCars(taskData.cars.Count)} cars from {FormatTrack(taskData.startTrack, nearestYardID)} to {FormatTrack(taskData.destinationTrack, nearestYardID)}", stringBuilder);
             } else if (task.InstanceTaskType == TaskType.Warehouse) {
                 if (taskData.warehouseTaskType == WarehouseTaskType.Loading) {
-                    AppendIndented(indent, $"Load {taskData.cars.Count} at {taskData.destinationTrack.ID.TrackPartOnly}", sb);
+                    AppendIndented(indent, $"Load {FormatNumberOfCars(taskData.cars.Count)} at {FormatTrack(taskData.destinationTrack, nearestYardID)}", stringBuilder);
                 } else if (taskData.warehouseTaskType == WarehouseTaskType.Unloading) {
-                    AppendIndented(indent, $"Unload {taskData.cars.Count} at {taskData.destinationTrack.ID.TrackPartOnly}", sb);
+                    AppendIndented(indent, $"Unload {FormatNumberOfCars(taskData.cars.Count)} at {FormatTrack(taskData.destinationTrack, nearestYardID)}", stringBuilder);
                 } else {
-                    AppendIndented(indent, "(unknown WarehouseTaskType)", sb);
+                    AppendIndented(indent, "(unknown WarehouseTaskType)", stringBuilder);
                 }
             } else {
-                AppendIndented(indent, "(unknown TaskType)", sb);
+                AppendIndented(indent, "(unknown TaskType)", stringBuilder);
             }
 
-            if (task.state == TaskState.Done || task.state == TaskState.Failed) {
-                sb.Append("</color>");
+            if (task.state == TaskState.Done) {
+                return GetColoredString(Color.green, stringBuilder.ToString());
+            } else if (task.state == TaskState.Failed) {
+                return GetColoredString(Color.red, stringBuilder.ToString());
+            } else {
+                return stringBuilder.ToString();
             }
+        }
 
-            sb.AppendLine();
+        private static string GetColoredString(Color color, string content) {
+            var colorString = GetHexColorComponent(color.r) + GetHexColorComponent(color.g) + GetHexColorComponent(color.b);
+            return $"<color=#{colorString}>{content}</color>";
+        }
+
+        private static string GetHexColorComponent(float colorComponent) {
+            return Convert.ToString((int)(255 * colorComponent), 16);
+        }
+
+        private string FormatTrack(Track track, string nearestYardID) {
+            if (track.ID.yardId == nearestYardID) {
+                return track.ID.TrackPartOnly;
+            } else {
+                return GetColoredString(_yardID2Color[track.ID.yardId], track.ID.FullDisplayID);
+            }
+        }
+
+        private static string FormatNumberOfCars(int count) {
+            if (count == 1) {
+                return "1 car";
+            } else {
+                return count + " cars";
+            }
         }
 
         private static void AppendIndented(int indent, string value, StringBuilder sb) {

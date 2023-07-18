@@ -3,10 +3,14 @@ using DV.Logic.Job;
 using VRTK;
 
 namespace DVDispatcherMod.PlayerInteractionManagers {
-    internal class VRPlayerInteractionManager : IPlayerInteractionManager {
+    public sealed class VRPlayerInteractionManager : IPlayerInteractionManager {
+        private readonly VRTK_InteractGrab _interactGrab;
+
         public VRPlayerInteractionManager(VRTK_InteractGrab interactGrab) {
-            interactGrab.ControllerGrabInteractableObject += HandleControllerGrabInteractableObject;
-            interactGrab.ControllerStartUngrabInteractableObject += HandleControllerStartUngrabInteractableObject;
+            _interactGrab = interactGrab;
+
+            _interactGrab.ControllerGrabInteractableObject += HandleControllerGrabInteractableObject;
+            _interactGrab.ControllerStartUngrabInteractableObject += HandleControllerStartUngrabInteractableObject;
         }
 
         public Job JobOfInterest { get; private set; }
@@ -40,6 +44,11 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
                 return jb.job;
             }
             return null;
+        }
+
+        public void Dispose() {
+            _interactGrab.ControllerGrabInteractableObject -= HandleControllerGrabInteractableObject;
+            _interactGrab.ControllerStartUngrabInteractableObject -= HandleControllerStartUngrabInteractableObject;
         }
     }
 }

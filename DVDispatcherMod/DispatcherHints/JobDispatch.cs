@@ -12,13 +12,15 @@ using UnityEngine;
 namespace DVDispatcherMod.DispatcherHints {
     public class JobDispatch {
         private readonly Job _job;
+        private readonly TaskOverviewGenerator _taskOverviewGenerator;
         private readonly IdGenerator _idGenerator;
         private readonly CareerManagerDebtController _careerManagerDebtController;
         private readonly JobsManager _playerJobs;
         private readonly LicenseManager _licenseManager;
 
-        public JobDispatch(Job job) {
+        public JobDispatch(Job job, TaskOverviewGenerator taskOverviewGenerator) {
             _job = job;
+            _taskOverviewGenerator = taskOverviewGenerator;
 
             _idGenerator = SingletonBehaviour<IdGenerator>.Instance ?? throw new InvalidOperationException("IdGenerator singleton is null");
             _careerManagerDebtController = SingletonBehaviour<CareerManagerDebtController>.Instance ?? throw new InvalidOperationException("CareerManagerDebtController singleton is null");
@@ -76,7 +78,7 @@ namespace DVDispatcherMod.DispatcherHints {
 
             var dispatcherHintText = GetDispatcherHintTextForAtLeastOneTrainSet(dispatchTrainSets, highlightTrainSetIndex);
 
-            var taskOverview = TaskOverviewGenerator.GetTaskOverview(_job);
+            var taskOverview = _taskOverviewGenerator.GetTaskOverview(_job);
 
             var floatieText = dispatcherHintText + Environment.NewLine + taskOverview;
 
