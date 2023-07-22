@@ -76,7 +76,7 @@ namespace DVDispatcherMod {
         }
 
         private static string GetHexColorComponent(float colorComponent) {
-            return Convert.ToString((int)(255 * colorComponent), 16);
+            return ((int)(255 * colorComponent)).ToString("X2");
         }
 
         private string FormatTrack(Track track, string nearestYardID) {
