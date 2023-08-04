@@ -1,26 +1,23 @@
-﻿using DVDispatcherMod.DispatcherHints;
+﻿using System;
+using DVDispatcherMod.DispatcherHints;
 using DVDispatcherMod.DispatcherHintShowers;
 using DVDispatcherMod.PlayerInteractionManagers;
 using JetBrains.Annotations;
 
 namespace DVDispatcherMod.DispatcherHintManagers {
-    public class DispatcherHintManager {
+    public sealed class DispatcherHintManager : IDisposable {
         private readonly IPlayerInteractionManager _playerInteractionManager;
         private readonly IDispatcherHintShower _dispatcherHintShower;
+        private readonly TaskOverviewGenerator _taskOverviewGenerator;
 
-        private bool _isEnabled = true;
         private int _counterValue;
 
-        public DispatcherHintManager([NotNull] IPlayerInteractionManager playerInteractionManager, [NotNull] IDispatcherHintShower dispatcherHintShower) {
+        public DispatcherHintManager([NotNull] IPlayerInteractionManager playerInteractionManager, [NotNull] IDispatcherHintShower dispatcherHintShower, TaskOverviewGenerator taskOverviewGenerator) {
             _playerInteractionManager = playerInteractionManager;
             _dispatcherHintShower = dispatcherHintShower;
+            _taskOverviewGenerator = taskOverviewGenerator;
 
             _playerInteractionManager.JobOfInterestChanged += HandleJobObInterestChanged;
-        }
-
-        public void SetIsEnabled(bool value) {
-            _isEnabled = value;
-            UpdateDispatcherHint();
         }
 
         public void SetCounter(int counterValue) {
@@ -44,16 +41,17 @@ namespace DVDispatcherMod.DispatcherHintManagers {
         }
 
         private DispatcherHint GetCurrentDispatcherHint() {
-            if (!_isEnabled) {
-                return null;
-            }
-
             var job = _playerInteractionManager.JobOfInterest;
             if (job != null) {
-                return new JobDispatch(job).GetDispatcherHint(_counterValue);
+                return new JobDispatch(job, _taskOverviewGenerator).GetDispatcherHint(_counterValue);
             } else {
                 return null;
             }
+        }
+
+        public void Dispose() {
+            _dispatcherHintShower.SetDispatcherHint(null);
+            _playerInteractionManager?.Dispose();
         }
     }
 }

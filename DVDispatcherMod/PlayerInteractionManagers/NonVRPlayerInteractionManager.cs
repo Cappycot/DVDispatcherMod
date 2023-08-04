@@ -1,27 +1,29 @@
 ﻿using System;
+using DV.Interaction;
 using DV.Logic.Job;
 using UnityEngine;
 
 namespace DVDispatcherMod.PlayerInteractionManagers {
-    public class NonVRPlayerInteractionManager : IPlayerInteractionManager {
+    public sealed class NonVRPlayerInteractionManager : IPlayerInteractionManager {
         private readonly Grabber _grabber;
         private Job _grabbedJob;
         private Job _hoveredJob;
 
-        public NonVRPlayerInteractionManager(Grabber grabber, Inventory inventory) {
+        public NonVRPlayerInteractionManager(Grabber grabber) {
             _grabber = grabber;
-            grabber.Grabbed += HandleGrabbed;
-            grabber.Released += _ => HandleHeldItemReleased();
-            grabber.Hovered += HandleHovered;
-            grabber.Unhovered += _ => HandleUnhovered();
-            inventory.ItemAddedToInventory += (go, i) => HandleHeldItemReleased();
+
+            _grabber.GrabStarted += HandleGrabbed;
+            _grabber.GrabStopped += HandleHeldItemReleased;
+            _grabber.Raycaster.Hovered += HandleHovered;
+            _grabber.Raycaster.UnHovered += HandleUnhovered;
         }
 
         public Job JobOfInterest => _grabbedJob ?? _hoveredJob;
 
         public event Action JobOfInterestChanged;
 
-        private void HandleGrabbed(GameObject gameObject) {
+        private void HandleGrabbed(AGrabHandler grabHandler) {
+            var gameObject = GetGameObject(grabHandler);
             var inventoryItemSpec = gameObject?.GetComponent<InventoryItemSpec>();
             if (inventoryItemSpec != null) {
                 var job = TryGetJobFromInventoryItemSpec(inventoryItemSpec);
@@ -32,12 +34,13 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
             }
         }
 
-        private void HandleHeldItemReleased() {
+        private void HandleHeldItemReleased(AGrabHandler grabHandler) {
             _grabbedJob = null;
             JobOfInterestChanged?.Invoke();
         }
 
-        private void HandleHovered(GameObject gameObject) {
+        private void HandleHovered(AGrabHandler grabHandler) {
+            var gameObject = GetGameObject(grabHandler);
             if (gameObject != null) {
                 var job = TryGetJobFromGameObject(gameObject);
                 if (job != null) {
@@ -47,9 +50,13 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
             }
         }
 
-        private void HandleUnhovered() {
+        private void HandleUnhovered(AGrabHandler aGrabHandler) {
             _hoveredJob = null;
             JobOfInterestChanged?.Invoke();
+        }
+
+        private static GameObject GetGameObject(AGrabHandler grabHandler) {
+            return grabHandler.GetComponent<InventoryItemSpec>()?.gameObject;
         }
 
         private static Job TryGetJobFromInventoryItemSpec(InventoryItemSpec inventoryItemSpec) {
@@ -70,6 +77,13 @@ namespace DVDispatcherMod.PlayerInteractionManagers {
                 return jb.job;
             }
             return null;
+        }
+
+        public void Dispose() {
+            _grabber.GrabStarted += HandleGrabbed;
+            _grabber.GrabStopped += HandleHeldItemReleased;
+            _grabber.Raycaster.Hovered += HandleHovered;
+            _grabber.Raycaster.UnHovered += HandleUnhovered;
         }
     }
 }

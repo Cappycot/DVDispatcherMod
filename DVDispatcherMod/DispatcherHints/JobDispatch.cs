@@ -4,22 +4,28 @@ using System.Linq;
 using System.Text;
 using DV.Logic.Job;
 using DV.ServicePenalty;
+using DV.ThingTypes;
+using DV.Utils;
 using DVDispatcherMod.Extensions;
 using UnityEngine;
 
 namespace DVDispatcherMod.DispatcherHints {
     public class JobDispatch {
         private readonly Job _job;
+        private readonly TaskOverviewGenerator _taskOverviewGenerator;
         private readonly IdGenerator _idGenerator;
         private readonly CareerManagerDebtController _careerManagerDebtController;
-        private readonly PlayerJobs _playerJobs;
+        private readonly JobsManager _playerJobs;
+        private readonly LicenseManager _licenseManager;
 
-        public JobDispatch(Job job) {
+        public JobDispatch(Job job, TaskOverviewGenerator taskOverviewGenerator) {
             _job = job;
+            _taskOverviewGenerator = taskOverviewGenerator;
 
             _idGenerator = SingletonBehaviour<IdGenerator>.Instance ?? throw new InvalidOperationException("IdGenerator singleton is null");
             _careerManagerDebtController = SingletonBehaviour<CareerManagerDebtController>.Instance ?? throw new InvalidOperationException("CareerManagerDebtController singleton is null");
-            _playerJobs = PlayerJobs.Instance ?? throw new InvalidOperationException("PlayerJobs.Instance is nul");
+            _playerJobs = JobsManager.Instance ?? throw new InvalidOperationException("PlayerJobs.Instance is null");
+            _licenseManager = LicenseManager.Instance ?? throw new InvalidOperationException("PlayerJobs.Instance is null");
         }
 
         public DispatcherHint GetDispatcherHint(int highlightIndex) {
@@ -56,9 +62,9 @@ namespace DVDispatcherMod.DispatcherHints {
         }
 
         private string GetJobNotAllowedTextOrNull() {
-            if (_playerJobs.currentJobs.Count >= LicenseManager.GetNumberOfAllowedConcurrentJobs()) {
+            if (_playerJobs.currentJobs.Count >= _licenseManager.GetNumberOfAllowedConcurrentJobs()) {
                 return "You already have the maximum number of active jobs.";
-            } else if (!LicenseManager.IsLicensedForJob(_job.requiredLicenses)) {
+            } else if (!_licenseManager.IsLicensedForJob(JobLicenseType_v2.ToV2List(_job.requiredLicenses))) {
                 return "You don't have the required license(s) for this job.";
             } else if (!_careerManagerDebtController.IsPlayerAllowedToTakeJob()) {
                 return "You still have fees to pay off in the Career Manager.";
@@ -72,7 +78,7 @@ namespace DVDispatcherMod.DispatcherHints {
 
             var dispatcherHintText = GetDispatcherHintTextForAtLeastOneTrainSet(dispatchTrainSets, highlightTrainSetIndex);
 
-            var taskOverview = TaskOverviewGenerator.GetTaskOverview(_job);
+            var taskOverview = _taskOverviewGenerator.GetTaskOverview(_job);
 
             var floatieText = dispatcherHintText + Environment.NewLine + taskOverview;
 
